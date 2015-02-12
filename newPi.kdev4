@@ -1,0 +1,4 @@
+[Project]
+Name=newPi
+Manager=KDevCMakeManager
+VersionControl=kdevgit
