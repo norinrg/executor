@@ -27,6 +27,8 @@
 
 #include "SyncExecutor.h"
 
+namespace nrg {
+
 SyncExecutor::SyncExecutor(std::function<void(const std::exception&)> onError)
     : onError_(onError)
 {
@@ -40,4 +42,6 @@ void SyncExecutor::operator()(std::function<void()> fn) const
     catch(const std::exception& ex) {
         onError_(ex);
     }
+}
+
 }

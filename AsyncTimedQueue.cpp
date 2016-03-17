@@ -26,3 +26,11 @@
  */
 
 #include "AsyncTimedQueue.h"
+
+namespace nrg {
+
+AsyncTimedQueue::AsyncTimedQueue(std::function<void(const std::exception&)> onError)
+{
+}
+
+}

@@ -27,7 +27,11 @@
 
 #include "AsyncTimedExecutor.h"
 
+namespace nrg {
+
 AsyncTimedExecutor::AsyncTimedExecutor(std::function<void(const std::exception&)> onError)
     : queue_(std::move(onError))
 {
+}
+
 }

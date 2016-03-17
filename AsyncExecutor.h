@@ -33,16 +33,20 @@
 #include <exception>
 #include <functional>
 
+namespace nrg {
+
 class AsyncExecutor {
 public:
     AsyncExecutor(std::function<void(const std::exception&)> onError);
 
     void stop();
-    
+
     void operator()(std::function<void()> fn);
 
 private:
     AsyncQueue queue_;
 };
+
+}
 
 #endif

@@ -32,6 +32,8 @@
 #include <memory>
 #include <utility>
 
+namespace nrg {
+
 template<typename ExecutionPolicy>
 class Executor {
 public:
@@ -60,5 +62,7 @@ public:
 private:
     ExecutionPolicy executor_;
 };
+
+}
 
 #endif

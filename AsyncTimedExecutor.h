@@ -34,6 +34,8 @@
 #include <exception>
 #include <functional>
 
+namespace nrg {
+
 class AsyncTimedExecutor {
 public:
     AsyncTimedExecutor(std::function<void(const std::exception&)> onError);
@@ -63,5 +65,7 @@ public:
 private:
     AsyncTimedQueue queue_;
 };
+
+}
 
 #endif

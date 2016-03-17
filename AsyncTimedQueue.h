@@ -33,6 +33,8 @@
 #include <functional>
 #include <memory>
 
+namespace nrg {
+
 class AsyncTimedQueue {
 public:
     AsyncTimedQueue(std::function<void(const std::exception&)> onError);
@@ -56,5 +58,7 @@ private:
     class Impl;
     std::shared_ptr<Impl> impl_;
 };
+
+}
 
 #endif

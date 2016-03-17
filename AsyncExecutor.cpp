@@ -27,6 +27,8 @@
 
 #include "AsyncExecutor.h"
 
+namespace nrg {
+
 AsyncExecutor::AsyncExecutor(std::function<void(const std::exception&)> onError)
     : queue_(std::move(onError))
 {
@@ -42,3 +44,4 @@ void AsyncExecutor::operator()(std::function<void()> fn)
     queue_.push(std::move(fn));
 }
 
+}

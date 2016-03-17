@@ -2,16 +2,9 @@
 #include "Executor.h"
 #include "SyncExecutor.h"
 
-//#include "mctracer.h"
-
-//#include <boost/date_time/posix_time/posix_time_types.hpp>
-//#include <boost/date_time/posix_time/ptime.hpp>
-                                                                                                                                                                                                                                                                
-//#include <fstream>
 #include <iostream>
-//#include <utility>
 #include <thread>
-                                                                                                                                                                                                                                                                
+
 class X {
 public:
     void f(int) {}
@@ -23,12 +16,12 @@ template <typename T>
 class Q {
 public:
     Q(const std::shared_ptr<T>& t) : t_(t) {}
-    
+
     void start()
     {
         q_.start();
     }
-    
+
     template<typename Fn, typename... P>
     void push(Fn fn, P&& ...p)
     {
@@ -51,7 +44,7 @@ private:
             ((*t).*fn)(std::forward<P...>(p)...);
         }
     }
-    
+
 private:
     WorkerQueue q_;
     std::weak_ptr<T> t_;
@@ -64,13 +57,13 @@ public:
         : t_(t)
         , queue_(queue)
     {}
-    
+
     template<typename Fn, typename... P>
     void push(Fn fn, P&& ...p)
     {
         execute(queue_, fn, t_, std::forward<P>(p)...);
     }
-    
+
     WorkerQueue queue() const
     {
         return queue_;
@@ -87,7 +80,7 @@ private:
         };
         queue.push(wf);
     }
-    
+
 private:
     WorkerQueue queue_;
     std::weak_ptr<T> t_;
@@ -150,16 +143,16 @@ WorkerQueue fn()
 {
     std::shared_ptr<X> x = std::make_shared<X>();
     ObjectQueue<X> qx(x);
-    
+
     qx.push(&X::f, 42);
-    
+
     return qx.queue();
     //qx.push(&X::c);
 }
 */
 
 template<typename T>
-void bye(Executor<T>& ex)
+void bye(nrg::Executor<T>& ex)
 {
     ex.stop();
 }
@@ -183,20 +176,20 @@ void exception()
 template<typename ExecutionMode>
 void test()
 {
-    Executor<ExecutionMode> ex(onError);
+    nrg::Executor<ExecutionMode> ex(onError);
 
     std::function<void()> f = noParam;
     ex(f);
 
     ex(noParam);
     ex(print2, 42, "hallo");
-    
+
     ex(exception);
     ex(print, std::ref(std::cout), 22);
 }
 
 int main()
 {
-    test<SyncExecutor>();
-    test<AsyncExecutor>();
+    test<nrg::SyncExecutor>();
+    test<nrg::AsyncExecutor>();
 }

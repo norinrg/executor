@@ -31,17 +31,21 @@
 #include <exception>
 #include <functional>
 
+namespace nrg {
+
 class SyncExecutor {
 public:
     SyncExecutor(std::function<void(const std::exception&)> onError);
-    
+
     void stop() const
     {}
-    
+
     void operator()(std::function<void()> fn) const;
 
 private:
     std::function<void(const std::exception&)> onError_;
 };
+
+}
 
 #endif

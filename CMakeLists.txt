@@ -3,11 +3,12 @@ cmake_minimum_required(VERSION 2.8)
 project(newpi)
 
 add_executable(newpi
-    AsyncTimedExecutor.cpp
-    AsyncExecutor.cpp
-    AsyncQueue.cpp
-    main.cpp
-    SyncExecutor.cpp
+    AsyncExecutor
+    AsyncQueue
+    AsyncTimedExecutor
+    AsyncTimedQueue
+    main
+    SyncExecutor
 )
 
 ##IF (DEFINED CMAKE_CODE_COVERAGE)

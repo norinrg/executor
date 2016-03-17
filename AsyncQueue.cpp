@@ -31,6 +31,8 @@
 #include <queue>
 #include <thread>
 
+namespace nrg {
+
 class AsyncQueue::Impl {
 public:
     Impl(std::function<void(const std::exception&)> onError);
@@ -44,10 +46,10 @@ private:
 
 private:
     std::thread thread_;
-    
+
     std::mutex guard_;
     std::condition_variable cond_;
-    
+
     std::queue<std::function<void()>> queue_;
     std::function<void(const std::exception&)> onError_;
     bool running_;
@@ -114,4 +116,6 @@ void AsyncQueue::stop()
 void AsyncQueue::push(std::function<void()> fn)
 {
     impl_->push(std::move(fn));
+}
+
 }
