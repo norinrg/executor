@@ -2,13 +2,15 @@ cmake_minimum_required(VERSION 2.8)
 
 project(newpi)
 
+include_directories(executor)
+
 add_executable(newpi
-    AsyncExecutor
-    AsyncQueue
-    AsyncTimedExecutor
-    AsyncTimedQueue
-    main
-    SyncExecutor
+    src/AsyncExecutor
+    src/AsyncQueue
+    src/AsyncTimedExecutor
+    src/AsyncTimedQueue
+    test/main
+    src/SyncExecutor
 )
 
 ##IF (DEFINED CMAKE_CODE_COVERAGE)
