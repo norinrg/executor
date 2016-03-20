@@ -120,7 +120,7 @@ void AsyncTimedQueue::Impl::run()
         if (!running_) {
             break;
         }
-        cond_.wait_until(lock, due, &Impl::frontIsDue);
+        cond_.wait_until(lock, due, [this](){return !queue_.empty() && frontIsDue();});
     }
 }
 
