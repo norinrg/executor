@@ -1,6 +1,6 @@
 #include <executor/AsyncExecutor.h>
-#include "Executor.h"
-#include "SyncExecutor.h"
+#include <executor/Executor.h>
+#include <executor/SyncExecutor.h>
 
 #include <iostream>
 #include <thread>

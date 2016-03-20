@@ -25,7 +25,7 @@
  *
  */
 
-#include "AsyncExecutor.h"
+#include <executor/AsyncExecutor.h>
 
 namespace nrg {
 

@@ -40,19 +40,17 @@ public:
     AsyncTimedQueue(std::function<void(const std::exception&)> onError);
 
     void stop();
-    void push(std::function<void()> fn);
-
-    template<class Rep, class Period>
-    void push(const std::chrono::duration<Rep, Period>& delay, std::function<void()> fn)
+    void push(std::function<void()> fn)
     {
-        //!!!
+        push(std::chrono::steady_clock::now(), std::move(fn));
     }
 
-    template<class Rep, class Period>
-    void push(const std::chrono::time_point<Rep, Period>& when, std::function<void()> fn)
+    void push(const std::chrono::steady_clock::duration& delay, std::function<void()> fn)
     {
-        //!!!
+        push(std::chrono::steady_clock::now() + delay, std::move(fn));
     }
+
+    void push(const std::chrono::steady_clock::time_point& when, std::function<void()> fn);
 
 private:
     class Impl;

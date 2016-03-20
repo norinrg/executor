@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(newpi)
 
-include_directories(executor)
+include_directories(.)
 
 add_executable(newpi
     src/AsyncExecutor
