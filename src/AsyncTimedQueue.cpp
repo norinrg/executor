@@ -40,9 +40,9 @@ struct TimedFunction {
     std::function<void()> fn;
 };
 
-bool operator<(const TimedFunction& lhs, const TimedFunction& rhs)
+bool operator>(const TimedFunction& lhs, const TimedFunction& rhs)
 {
-    return lhs.when < rhs.when;
+    return lhs.when > rhs.when;
 }
 
 }
@@ -57,7 +57,7 @@ public:
 
 private:
     void run();
-    bool frontIsDue() const;
+    bool queueIsDue() const;
 
 private:
     std::thread thread_;
@@ -65,14 +65,16 @@ private:
     std::mutex guard_;
     std::condition_variable cond_;
 
-    std::priority_queue<TimedFunction> queue_;
+    std::priority_queue<TimedFunction, std::vector<TimedFunction>, std::greater<TimedFunction>> queue_;
 
     std::function<void(const std::exception&)> onError_;
     bool running_;
 };
 
 AsyncTimedQueue::Impl::Impl(std::function<void(const std::exception&)> onError)
-    : onError_(std::move(onError))
+    : thread_(std::thread(&AsyncTimedQueue::Impl::run, this))
+    , onError_(std::move(onError))
+    , running_(true)
 {
 }
 
@@ -90,21 +92,15 @@ void AsyncTimedQueue::Impl::stop()
 void AsyncTimedQueue::Impl::push(const std::chrono::steady_clock::time_point& when, std::function<void()> fn)
 {
     std::unique_lock<std::mutex> lock(guard_);
-    queue_.emplace(when, std::move(fn));
+    queue_.emplace(TimedFunction{when, std::move(fn)});
     cond_.notify_one();
 }
 
 void AsyncTimedQueue::Impl::run()
 {
     std::unique_lock<std::mutex> lock(guard_);
-    while (running_) {
-        std::chrono::steady_clock::time_point due(std::chrono::steady_clock::duration::max());
-        while (!queue_.empty() && running_) {
-            if (!frontIsDue()) {
-                due = queue_.top().when;
-                break;
-            }
-
+    while (true) {
+        while (queueIsDue()) {
             // this one is due!
             TimedFunction tf = std::move(queue_.top());
             queue_.pop();
@@ -120,13 +116,30 @@ void AsyncTimedQueue::Impl::run()
         if (!running_) {
             break;
         }
-        cond_.wait_until(lock, due, [this](){return !queue_.empty() && frontIsDue();});
+
+        if (!queue_.empty()) {
+            cond_.wait_until(lock, queue_.top().when, [this](){return queueIsDue();});
+        } else {
+            cond_.wait(lock);
+        }
     }
+}
+
+bool AsyncTimedQueue::Impl::queueIsDue() const
+{
+    return !queue_.empty() &&
+        queue_.top().when <= std::chrono::steady_clock::now() &&
+        running_;
 }
 
 AsyncTimedQueue::AsyncTimedQueue(std::function<void(const std::exception&)> onError)
     : impl_(std::make_shared<Impl>(std::move(onError)))
 {
+}
+
+void AsyncTimedQueue::stop()
+{
+    impl_->stop();
 }
 
 void AsyncTimedQueue::push(const std::chrono::steady_clock::time_point& when, std::function<void()> fn)

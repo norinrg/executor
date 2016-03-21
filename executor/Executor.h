@@ -59,6 +59,19 @@ public:
         (*this)(std::move(f));
     }
 
+    template<typename Rep, typename Period, typename FN>
+    void operator()(const std::chrono::time_point<Rep, Period>& when, std::function<void()> fn)
+    {
+        executor_(when, std::move(fn));
+    }
+
+    template<typename Rep, typename Period, typename FN, typename... Param>
+    void operator()(const std::chrono::time_point<Rep, Period>& when, FN fn, Param&& ...param)
+    {
+        std::function<void()> f([fn, &param...]() { fn(std::forward<Param>(param)...); });
+        executor_(when, std::move(f));
+    }
+
 private:
     ExecutionPolicy executor_;
 };
