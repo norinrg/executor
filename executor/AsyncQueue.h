@@ -33,6 +33,9 @@
 
 namespace nrg {
 
+static auto i=36L;
+static std::function<void()> fx;
+
 class AsyncQueue {
 public:
     AsyncQueue(std::function<void(const std::exception&)> onError);

@@ -32,6 +32,24 @@ private:
     std::chrono::steady_clock::time_point started_;
 };
 
+class TimedCaller1 {
+public:
+    TimedCaller1(nrg::Executor<nrg::AsyncTimedExecutor> ex, const std::chrono::milliseconds& dt) : ex_(ex), started_(now())
+    {
+    }
+
+    void operator()() const
+    {
+        std::cerr << "called after " << std::chrono::duration_cast<std::chrono::milliseconds>(now()-started_).count() << "\n";
+        //!!!ex_(now()+ dt_, TimedCaller1(ex_, dt_));
+    }
+
+private:
+    nrg::Executor<nrg::AsyncTimedExecutor> ex_;
+    std::chrono::milliseconds dt_;
+    std::chrono::steady_clock::time_point started_;
+};
+
 /*
 template <typename T>
 class Q {
@@ -198,20 +216,60 @@ template<typename ExecutionMode>
 void test()
 {
     nrg::Executor<ExecutionMode> ex(onError);
-
     std::function<void()> f = noParam;
     ex(f);
 
     ex(noParam);
     ex(print2, 42, "hallo");
-
     ex(exception);
-    ex(print, std::ref(std::cerr), 22);
+
+    ex(print, std::ref(std::cerr), 25);
+}
+
+template<typename ExecutionMode>
+void test1()
+{
+    nrg::Executor<ExecutionMode> ex(onError);
+    int i = 42;
+    ex(print2, i, "hallo1");
+    ex(print2, i, "hallo2");
+    ex(print2, i, "hallo3");
+    ex(print2, i, "hallo4");
+    ex(print2, i, "hallo5");
+    ex(print2, i, "hallo6");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    ex(print, std::ref(std::cerr), 251);
+    ex(print, std::ref(std::cerr), 252);
+    ex(print, std::ref(std::cerr), 253);
+    ex(print, std::ref(std::cerr), 254);
+    ex(print, std::ref(std::cerr), 255);
+    ex(print, std::ref(std::cerr), 256);
+}
+
+void f1(nrg::Executor<nrg::AsyncTimedExecutor> ex)
+{
+    auto dt = std::chrono::milliseconds(100);
+
+    for (int i = 0; i != 1000; ++i) {
+        ex(now()+dt, TimedCaller1(ex, dt));
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100*1000));
+}
+
+void f2(nrg::Executor<nrg::AsyncTimedExecutor> ex)
+{
+    for (int i = 0; i != 100; ++i) {
+        ex(TimedCaller());
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+    }
 }
 
 void testTimed()
 {
     nrg::Executor<nrg::AsyncTimedExecutor> ex(onError);
+
+    ex(now()+std::chrono::milliseconds(0), TimedCaller());
     ex(now()+std::chrono::milliseconds(10), TimedCaller());
     ex(now()+std::chrono::milliseconds(20), TimedCaller());
     ex(now()+std::chrono::milliseconds(30), TimedCaller());
@@ -223,14 +281,24 @@ void testTimed()
     ex(now()+std::chrono::milliseconds(90), TimedCaller());
     ex(now()+std::chrono::milliseconds(100), TimedCaller());
 
+    //std::this_thread::sleep_for(std::chrono::seconds(2));
+    ex(print, std::ref(std::cerr), 22);
+    ex(print2, 42, "hallo123");
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 int main()
 {
     //test<nrg::SyncExecutor>();
-    //test<nrg::AsyncExecutor>();
-
+    //test1<nrg::AsyncExecutor>();
     //test<nrg::AsyncTimedExecutor>();
-    testTimed();
+
+    //testTimed();
+    int i=3;
+    nrg::Executor<nrg::AsyncTimedExecutor> ex(onError);
+    std::thread t1(f1, ex);
+    std::thread t2(f2, ex);
+
+    t1.join();
+    t2.join();
 }

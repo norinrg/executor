@@ -92,7 +92,7 @@ void AsyncTimedQueue::Impl::stop()
 void AsyncTimedQueue::Impl::push(const std::chrono::steady_clock::time_point& when, std::function<void()> fn)
 {
     std::unique_lock<std::mutex> lock(guard_);
-    queue_.emplace(TimedFunction{when, std::move(fn)});
+    queue_.push(TimedFunction{when, std::move(fn)});
     cond_.notify_one();
 }
 
@@ -102,7 +102,7 @@ void AsyncTimedQueue::Impl::run()
     while (true) {
         while (queueIsDue()) {
             // this one is due!
-            TimedFunction tf = std::move(queue_.top());
+            TimedFunction tf = queue_.top();
             queue_.pop();
 
             lock.unlock();

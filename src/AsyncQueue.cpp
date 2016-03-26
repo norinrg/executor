@@ -45,20 +45,20 @@ private:
     void run();
 
 private:
-    std::thread thread_;
-
     std::mutex guard_;
     std::condition_variable cond_;
 
     std::queue<std::function<void()>> queue_;
-    std::function<void(const std::exception&)> onError_;
     bool running_;
+
+    std::function<void(const std::exception&)> onError_;
+    std::thread thread_;
 };
 
 AsyncQueue::Impl::Impl(std::function<void(const std::exception&)> onError)
-    : thread_(std::thread(&AsyncQueue::Impl::run, this))
+    : running_(true)
     , onError_(std::move(onError))
-    , running_(true)
+    , thread_(std::thread(&AsyncQueue::Impl::run, this))
 {
 }
 
@@ -75,15 +75,15 @@ void AsyncQueue::Impl::stop()
 
 void AsyncQueue::Impl::push(std::function<void()> fn)
 {
-    std::unique_lock<std::mutex> lock(guard_);
-    queue_.push(fn);
+    std::lock_guard<std::mutex> lock(guard_);
+    queue_.push(std::move(fn));
     cond_.notify_one();
 }
 
 void AsyncQueue::Impl::run()
 {
     std::unique_lock<std::mutex> lock(guard_);
-    while (running_) {
+    while (true) {
         while (!queue_.empty() && running_) {
             std::function<void()> fn = std::move(queue_.front());
             queue_.pop();
