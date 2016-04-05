@@ -33,9 +33,7 @@
 
 namespace nrg {
 
-static auto i=36L;
-static std::function<void()> fx;
-
+template<typename AsyncStyle>
 class AsyncQueue {
 public:
     AsyncQueue(std::function<void(const std::exception&)> onError);

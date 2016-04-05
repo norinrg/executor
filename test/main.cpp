@@ -245,7 +245,7 @@ void test1()
     ex(print, std::ref(std::cerr), 255);
     ex(print, std::ref(std::cerr), 256);
 }
-
+/*
 void f1(nrg::Executor<nrg::AsyncTimedExecutor> ex)
 {
     auto dt = std::chrono::milliseconds(100);
@@ -286,19 +286,19 @@ void testTimed()
     ex(print2, 42, "hallo123");
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
-
+*/
 int main()
 {
-    //test<nrg::SyncExecutor>();
+    test1<nrg::SyncExecutor>();
     //test1<nrg::AsyncExecutor>();
     //test<nrg::AsyncTimedExecutor>();
 
     //testTimed();
-    int i=3;
-    nrg::Executor<nrg::AsyncTimedExecutor> ex(onError);
-    std::thread t1(f1, ex);
-    std::thread t2(f2, ex);
+    //int i=3;
+    //nrg::Executor<nrg::AsyncTimedExecutor> ex(onError);
+    //std::thread t1(f1, ex);
+    //std::thread t2(f2, ex);
 
-    t1.join();
-    t2.join();
+    //t1.join();
+    //t2.join();
 }

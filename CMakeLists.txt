@@ -5,12 +5,10 @@ project(newpi)
 include_directories(.)
 
 add_executable(newpi
-    src/AsyncExecutor
     src/AsyncQueue
     src/AsyncTimedExecutor
     src/AsyncTimedQueue
     test/main
-    src/SyncExecutor
 )
 
 ##IF (DEFINED CMAKE_CODE_COVERAGE)

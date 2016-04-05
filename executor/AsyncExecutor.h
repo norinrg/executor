@@ -32,19 +32,59 @@
 
 #include <exception>
 #include <functional>
+#include <memory>
 
 namespace nrg {
 
+template<typename AsyncStyle>
 class AsyncExecutor {
 public:
-    AsyncExecutor(std::function<void(const std::exception&)> onError);
+    AsyncExecutor(std::function<void(const std::exception&)> onError)
+       // : impl_(std::make_shared<AsyncQueue<AsyncStyle>(std::move(onError))
+    {
+    }
 
-    void stop();
+    void stop()
+    {
+        impl_->stop();
+    }
 
-    void operator()(std::function<void()> fn);
+    template<typename... Param>
+    void operator()(Param&&... param)
+    {
+        (*impl_)(std::forward<Param>(param)...);
+    }
 
 private:
-    AsyncQueue queue_;
+    /*!!!
+    void run()
+    {
+        std::unique_lock<std::mutex> lock(guard_);
+        while (true) {
+            while (!AsyncStyle::isEmpty(queue_)) {
+                auto& elem = AsyncStyle::top(queue_);
+
+                if (AsyncStyle::isDue(elem)) {
+                    try {
+                        AsyncStyle::execute(lock, elem);
+                    }
+                    catch(std::exception& ex) {
+                        onError_(ex);
+                    }
+                    AsyncStyle::pop(queue_);
+                } else {
+                    AsyncStyle::waitUntilDue(cond_, lock, elem);
+                }
+            }
+            if (!running_) {
+                break;
+            }
+            cond_.wait(lock);
+        }
+    }
+    */
+private:
+    std::shared_ptr<AsyncQueue<AsyncStyle>> impl_;
 };
 
 }

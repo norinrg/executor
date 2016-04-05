@@ -29,7 +29,6 @@
 #define EXECUTOR_H
 
 #include <functional>
-#include <memory>
 #include <utility>
 
 namespace nrg {
@@ -37,6 +36,11 @@ namespace nrg {
 template<typename ExecutionPolicy>
 class Executor {
 public:
+    Executor()
+        : executor_(Executor::ignore)
+    {
+    }
+
     Executor(std::function<void(const std::exception&)> onError)
         : executor_(std::move(onError))
     {
@@ -47,18 +51,12 @@ public:
         executor_.stop();
     }
 
-    void operator()(std::function<void()> fn)
+    template<typename... Param>
+    void operator()(Param&& ...param)
     {
-        executor_(std::move(fn));
+        executor_(std::forward<Param>(param)...);
     }
-
-    template<typename FN, typename... Param>
-    void operator()(FN fn, Param&& ...param)
-    {
-        std::function<void()> f([=]() { fn(param...); });
-        (*this)(std::move(f));
-    }
-
+/*
     template<typename Rep, typename Period, typename FN>
     void operator()(const std::chrono::time_point<Rep, Period>& when, std::function<void()> fn)
     {
@@ -71,8 +69,12 @@ public:
         std::function<void()> f([=]() { fn(param...); });
         executor_(when, std::move(f));
     }
-
+*/
 private:
+    static void ignore(const std::exception&)
+    {
+    }
+
     ExecutionPolicy executor_;
 };
 

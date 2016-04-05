@@ -35,12 +35,31 @@ namespace nrg {
 
 class SyncExecutor {
 public:
-    SyncExecutor(std::function<void(const std::exception&)> onError);
+    SyncExecutor(std::function<void(const std::exception&)> onError)
+        : onError_(onError)
+    {
+    }
 
     void stop() const
-    {}
+    {
+    }
 
-    void operator()(std::function<void()> fn) const;
+    void operator()(std::function<void()> fn)
+    {
+        try {
+            fn();
+        }
+        catch (std::exception& ex) {
+            onError_(ex);
+        }
+    }
+
+    template<typename FN, typename... Param>
+    void operator()(FN fn, Param&&... param)
+    {
+        std::function<void()> f([&]() { fn(std::forward<Param>(param)...); });
+        (*this)(std::move(f));
+    }
 
 private:
     std::function<void(const std::exception&)> onError_;
