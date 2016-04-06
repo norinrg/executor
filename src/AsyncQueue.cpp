@@ -23,7 +23,7 @@
     ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
-
+#if 0
 #include <executor/AsyncQueue.h>
 
 #include <condition_variable>
@@ -119,3 +119,4 @@ void AsyncQueue::push(std::function<void()> fn)
 }
 
 }
+#endif

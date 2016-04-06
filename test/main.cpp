@@ -290,7 +290,7 @@ void testTimed()
 int main()
 {
     test1<nrg::SyncExecutor>();
-    //test1<nrg::AsyncExecutor>();
+    test1<nrg::AsyncExecutor<>>();
     //test<nrg::AsyncTimedExecutor>();
 
     //testTimed();

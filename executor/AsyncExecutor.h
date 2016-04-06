@@ -56,34 +56,6 @@ public:
     }
 
 private:
-    /*!!!
-    void run()
-    {
-        std::unique_lock<std::mutex> lock(guard_);
-        while (true) {
-            while (!AsyncStyle::isEmpty(queue_)) {
-                auto& elem = AsyncStyle::top(queue_);
-
-                if (AsyncStyle::isDue(elem)) {
-                    try {
-                        AsyncStyle::execute(lock, elem);
-                    }
-                    catch(std::exception& ex) {
-                        onError_(ex);
-                    }
-                    AsyncStyle::pop(queue_);
-                } else {
-                    AsyncStyle::waitUntilDue(cond_, lock, elem);
-                }
-            }
-            if (!running_) {
-                break;
-            }
-            cond_.wait(lock);
-        }
-    }
-    */
-private:
     std::shared_ptr<AsyncQueue<AsyncStyle>> impl_;
 };
 

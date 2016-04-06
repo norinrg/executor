@@ -27,23 +27,74 @@
 #ifndef ASYNCQUEUE_H
 #define ASYNCQUEUE_H
 
+#include <condition_variable>
 #include <exception>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
 
 namespace nrg {
 
 template<typename AsyncStyle>
 class AsyncQueue {
 public:
-    AsyncQueue(std::function<void(const std::exception&)> onError);
+    AsyncQueue(std::function<void(const std::exception&)> onError)
+        : running_(true)
+        , onError_(std::move(onError))
+        , thread_(std::thread(&AsyncQueue::run, this))
+    {
+    }
 
-    void stop();
-    void push(std::function<void()> fn);
+    void stop()
+    {
+        std::function<void()> fn([this]() {running_ = false; });
+        AsyncStyle::push(std::move(fn));
+    }
+
+    template<typename... Param>
+    void operator()(Param&&... param)
+    {
+        AsyncStyle::push(std::forward<Param>(param)...);
+    }
 
 private:
-    class Impl;
-    std::shared_ptr<Impl> impl_;
+    void run()
+    {
+        std::unique_lock<std::mutex> lock(guard_);
+        while (true) {
+            while (!AsyncStyle::isEmpty(queue_)) {
+                auto& elem = AsyncStyle::top(queue_);
+
+                if (AsyncStyle::isDue(elem)) {
+                    try {
+                        AsyncStyle::execute(lock, elem);
+                    }
+                    catch(std::exception& ex) {
+                        onError_(ex);
+                    }
+                    AsyncStyle::pop(queue_);
+                } else {
+                    AsyncStyle::waitUntilDue(cond_, lock, elem);
+                }
+            }
+            if (!running_) {
+                break;
+            }
+            cond_.wait(lock);
+        }
+    }
+
+private:
+    std::mutex guard_;
+    std::condition_variable cond_;
+
+    std::queue<std::function<void()>> queue_;
+    bool running_;
+
+    std::function<void(const std::exception&)> onError_;
+    std::thread thread_;
 };
 
 }
