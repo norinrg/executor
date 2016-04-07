@@ -32,7 +32,6 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <thread>
 
 namespace nrg {
