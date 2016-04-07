@@ -66,7 +66,7 @@ struct InstantExecution {
         queue.pop();
     }
 
-    static bool isDue(QueueElement& elem)
+    static bool isDue(const QueueElement& elem)
     {
         return true;
     }

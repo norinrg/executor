@@ -28,7 +28,8 @@
 #ifndef ASYNCEXECUTOR_H
 #define ASYNCEXECUTOR_H
 
-#include <executor/AsyncQueue.h>
+# include <executor/AsyncQueue.h>
+# include <executor/InstantExecution.h>
 
 #include <exception>
 #include <functional>
@@ -36,7 +37,7 @@
 
 namespace nrg {
 
-template<typename AsyncStyle>
+template<typename AsyncStyle = InstantExecution>
 class AsyncExecutor {
 public:
     AsyncExecutor(std::function<void(const std::exception&)> onError)

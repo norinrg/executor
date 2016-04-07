@@ -5,9 +5,6 @@ project(newpi)
 include_directories(.)
 
 add_executable(newpi
-    src/AsyncQueue
-    src/AsyncTimedExecutor
-    src/AsyncTimedQueue
     test/main
 )
 
