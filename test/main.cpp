@@ -1,6 +1,7 @@
 #include <executor/AsyncExecutor.h>
 #include <executor/AsyncTimedExecutor.h>
 #include <executor/Executor.h>
+#include <executor/InstantExecution.h>
 #include <executor/SyncExecutor.h>
 
 #include <iostream>
@@ -290,7 +291,7 @@ void testTimed()
 int main()
 {
     test1<nrg::SyncExecutor>();
-    test1<nrg::AsyncExecutor<>>();
+    test1<nrg::AsyncExecutor<nrg::InstantExecution>>();
     //test<nrg::AsyncTimedExecutor>();
 
     //testTimed();

@@ -46,17 +46,24 @@ public:
         , thread_(std::thread(&AsyncQueue::run, this))
     {
     }
+    ~AsyncQueue()
+    {
+        stop();
+        thread_.join();
+    }
 
     void stop()
     {
         std::function<void()> fn([this]() {running_ = false; });
-        AsyncStyle::push(std::move(fn));
+        (*this)(std::move(fn));
     }
 
     template<typename... Param>
     void operator()(Param&&... param)
     {
-        AsyncStyle::push(std::forward<Param>(param)...);
+        std::lock_guard<std::mutex> lock(guard_);
+        AsyncStyle::push(queue_, std::forward<Param>(param)...);
+        cond_.notify_one();
     }
 
 private:
@@ -65,18 +72,21 @@ private:
         std::unique_lock<std::mutex> lock(guard_);
         while (true) {
             while (!AsyncStyle::isEmpty(queue_)) {
-                auto& elem = AsyncStyle::top(queue_);
-
+                typename AsyncStyle::QueueElement elem = std::move(AsyncStyle::top(queue_));
                 if (AsyncStyle::isDue(elem)) {
+                    AsyncStyle::pop(queue_);
+
+                    lock.unlock();
                     try {
-                        AsyncStyle::execute(lock, elem);
+                        AsyncStyle::execute(elem);
                     }
                     catch(std::exception& ex) {
                         onError_(ex);
                     }
-                    AsyncStyle::pop(queue_);
+                    lock.lock();
                 } else {
-                    AsyncStyle::waitUntilDue(cond_, lock, elem);
+                    cond_.wait_for(lock, AsyncStyle::whenIsDue(elem),
+                        [this](){ return AsyncStyle::isDue(AsyncStyle::top(queue_)); });
                 }
             }
             if (!running_) {
@@ -90,7 +100,7 @@ private:
     std::mutex guard_;
     std::condition_variable cond_;
 
-    std::queue<std::function<void()>> queue_;
+    typename AsyncStyle::Queue queue_;
     bool running_;
 
     std::function<void(const std::exception&)> onError_;

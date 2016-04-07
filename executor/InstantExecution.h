@@ -1,4 +1,4 @@
-    /*
+/*
  * Boost Software License - Version 1.0 - August 17th, 2003
  *
  * Permission is hereby granted, free of charge, to any person or organization
@@ -25,45 +25,64 @@
  *
  */
 
-#ifndef SYNCEXECUTOR_H
-#define SYNCEXECUTOR_H
+#ifndef INSTANT_H
+#define INSTANT_H
 
-#include <exception>
+#include <chrono>
 #include <functional>
+#include <queue>
+#include <utility>
 
 namespace nrg {
 
-class SyncExecutor {
-public:
-    SyncExecutor(std::function<void(const std::exception&)> onError)
-        : onError_(onError)
-    {
-    }
+struct InstantExecution {
+    using QueueElement = std::function<void()>;
+    using Queue = std::queue<QueueElement>;
 
-    void stop() const
+    static void push(Queue& queue, QueueElement elem)
     {
-    }
-
-    void operator()(std::function<void()> fn)
-    {
-        try {
-            fn();
-        }
-        catch (std::exception& ex) {
-            onError_(ex);
-        }
+        queue.push(std::move(elem));
     }
 
     template<typename FN, typename... Param>
-    void operator()(FN fn, Param&&... param)
+    static void push(Queue& queue, FN fn, Param&&... param)
     {
-        std::function<void()> f([&]() { fn(std::forward<Param>(param)...); });
-        (*this)(std::move(f));
+        QueueElement elem = [=]() { fn(param...); };
+        push(queue, elem);
     }
 
-private:
-    std::function<void(const std::exception&)> onError_;
+    static bool isEmpty(const Queue& queue)
+    {
+        return queue.empty();
+    }
+
+    static QueueElement& top(Queue& queue)
+    {
+        return queue.front();
+    }
+
+    static void pop(Queue& queue)
+    {
+        queue.pop();
+    }
+
+    static bool isDue(QueueElement& elem)
+    {
+        return true;
+    }
+
+    static void execute(const QueueElement& elem)
+    {
+        elem();
+    }
+
+    static std::chrono::steady_clock::duration whenIsDue(const QueueElement& elem)
+    {
+        return std::chrono::milliseconds(0);
+    }
+
 };
+
 
 }
 

@@ -40,7 +40,7 @@ template<typename AsyncStyle>
 class AsyncExecutor {
 public:
     AsyncExecutor(std::function<void(const std::exception&)> onError)
-       // : impl_(std::make_shared<AsyncQueue<AsyncStyle>(std::move(onError))
+        : impl_(std::make_shared<AsyncQueue<AsyncStyle>>(std::move(onError)))
     {
     }
 
