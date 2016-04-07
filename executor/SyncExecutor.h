@@ -1,4 +1,4 @@
-    /*
+/*
  * Boost Software License - Version 1.0 - August 17th, 2003
  *
  * Permission is hereby granted, free of charge, to any person or organization
@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef SYNCEXECUTOR_H
-#define SYNCEXECUTOR_H
+#ifndef NRG_SYNCEXECUTOR_H
+#define NRG_SYNCEXECUTOR_H
 
 #include <exception>
 #include <functional>

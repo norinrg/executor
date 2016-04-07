@@ -24,8 +24,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef ASYNCQUEUE_H
-#define ASYNCQUEUE_H
+#ifndef NRG_ASYNCQUEUE_H
+#define NRG_ASYNCQUEUE_H
 
 #include <condition_variable>
 #include <exception>

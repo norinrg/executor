@@ -25,12 +25,11 @@
  *
  */
 
-#ifndef TIMEDEXECUTION_H
-#define TIMEDEXECUTION_H
+#ifndef NRG_TIMEDEXECUTION_H
+#define NRG_TIMEDEXECUTION_H
 
 #include <chrono>
 #include <functional>
-#include <iostream>
 #include <queue>
 #include <utility>
 
@@ -41,7 +40,7 @@ struct TimedExecution {
     using Function = std::function<void()>;
 
     struct QueueElement {
-        std::chrono::high_resolution_clock::time_point when;
+        std::chrono::steady_clock::time_point when;
         Function what;
 
         bool operator>(const QueueElement& rhs) const
@@ -52,68 +51,60 @@ struct TimedExecution {
 
     using Queue = std::priority_queue<QueueElement, std::vector<QueueElement>, std::greater<QueueElement>>;
 
-    static std::chrono::high_resolution_clock::time_point now()
+    static std::chrono::steady_clock::time_point now()
     {
-        return std::chrono::high_resolution_clock::now();
+        return std::chrono::steady_clock::now();
     }
 
     static void push(Queue& queue, QueueElement elem)
     {
-        std::cerr <<  "p0\n";
         queue.push(std::move(elem));
     }
 
-    //  no time, fn -> push
+    // 1. no time, fn -> push 1
     template<typename FN>
     static void push(Queue& queue, FN fn)
     {
-        std::cerr <<  "p1\n";
         QueueElement elem = { now(), std::move(fn) };
         push(queue, std::move(elem));
     }
 
-    //  no time, param...
+    // 2. no time, param...
     template<typename FN, typename... Param>
     static void push(Queue& queue, FN fn, Param&&... param)
     {
-        std::cerr <<  "p2\n";
         QueueElement elem = { now(), [=]() { fn(param...); } };
         push(queue, std::move(elem));
     }
 
-    // time-point, fn
-    template<class Rep2, class Period2, typename FN>
-    void operator()(Queue& queue, const std::chrono::time_point<Rep2, Period2>& when, FN fn)
+    // 3. time-point, fn
+    template<typename FN>
+    static void push(Queue& queue, const std::chrono::steady_clock::time_point& when, FN fn)
     {
-        std::cerr <<  "p3\n";
         QueueElement elem = { when, std::move(fn) };
         push(queue, std::move(elem));
     }
 
-    // delay, fn
-    template<class Rep2, class Period2, typename FN>
-    void operator()(Queue& queue, const std::chrono::duration<Rep2, Period2>& delay, FN fn)
+    // 4. delay, fn
+    template<class Rep, class Period, typename FN>
+    static void push(Queue& queue, const std::chrono::duration<Rep, Period>& delay, FN fn)
     {
-        std::cerr <<  "p4\n";
-        push(queue, now+delay, std::move(fn));
+        push(queue, now()+delay, std::move(fn));
     }
 
-    // time-point, param...
-    template<class Rep, class Period, typename FN, typename... Param>
-    void operator()(Queue& queue, const std::chrono::time_point<Rep, Period>& when, FN fn, Param&&... param)
+    // 5. time-point, param...
+    template<typename FN, typename... Param>
+    static void push(Queue& queue, const std::chrono::steady_clock::time_point& when, FN fn, Param&&... param)
     {
-        std::cerr <<  "p5\n";
         QueueElement elem = { when, [=]() { fn(param...); } };
         push(queue, std::move(elem));
     }
 
-    // delay, param...
+    // 6. delay, param...
     template<class Rep, class Period, typename FN, typename... Param>
-    void operator()(Queue& queue, const std::chrono::duration<Rep, Period>& delay, FN fn, Param&&... param)
+    static void push(Queue& queue, const std::chrono::duration<Rep, Period>& delay, FN fn, Param&&... param)
     {
-        std::cerr <<  "p6\n";
-        QueueElement elem = { now() + delay, fn };
-        push(queue, now()+delay, std::forward(param)...);
+        push(queue, now()+delay, std::move(fn), std::forward<Param>(param)...);
     }
 
     static bool isEmpty(const Queue& queue)
@@ -146,7 +137,6 @@ struct TimedExecution {
         return elem.when - now();
     }
 };
-
 
 }
 

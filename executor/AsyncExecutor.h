@@ -25,11 +25,11 @@
  *
  */
 
-#ifndef ASYNCEXECUTOR_H
-#define ASYNCEXECUTOR_H
+#ifndef NRG_ASYNCEXECUTOR_H
+#define NRG_ASYNCEXECUTOR_H
 
-# include <executor/AsyncQueue.h>
-# include <executor/InstantExecution.h>
+#include <executor/AsyncQueue.h>
+#include <executor/InstantExecution.h>
 
 #include <exception>
 #include <functional>

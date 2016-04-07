@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef EXECUTOR_H
-#define EXECUTOR_H
+#ifndef NRG_EXECUTOR_H
+#define NRG_EXECUTOR_H
 
 #include <functional>
 #include <utility>
@@ -56,20 +56,7 @@ public:
     {
         executor_(std::forward<Param>(param)...);
     }
-/*
-    template<typename Rep, typename Period, typename FN>
-    void operator()(const std::chrono::time_point<Rep, Period>& when, std::function<void()> fn)
-    {
-        executor_(when, std::move(fn));
-    }
 
-    template<typename Rep, typename Period, typename FN, typename... Param>
-    void operator()(const std::chrono::time_point<Rep, Period>& when, FN fn, Param&& ...param)
-    {
-        std::function<void()> f([=]() { fn(param...); });
-        executor_(when, std::move(f));
-    }
-*/
 private:
     static void ignore(const std::exception&)
     {

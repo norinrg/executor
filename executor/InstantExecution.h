@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef INSTANT_H
-#define INSTANT_H
+#ifndef NRG_INSTANT_H
+#define NRG_INSTANT_H
 
 #include <chrono>
 #include <functional>
@@ -82,7 +82,6 @@ struct InstantExecution {
     }
 
 };
-
 
 }
 
