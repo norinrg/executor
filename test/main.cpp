@@ -121,8 +121,14 @@ void test()
 void withResult(nrg::AsyncResult<int> ar1, nrg::AsyncResult<int> ar2, nrg::AsyncResult<int> ar3, int Default)
 {
     ar1.setResult(Default);
-    ar2.setResult(Default*2);
-    //  ar3 is not set
+    // ar2 is not set, will be set to a default from the other side
+    // ar3 is not set, will be checked by a std::optional<int>
+}
+
+void roundTrip(nrg::AsyncResult<int> ar4)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    ar4.setResult(0);
 }
 
 template<typename ExecutionMode>
@@ -146,9 +152,17 @@ void test1(const char* title)
 
     ex(withResult, ar1, ar2, ar3, 42);
     int res1 = ar1.getResult();
-    int res2 = ar2.getResult(std::chrono::milliseconds(10000), 43);
-    std::experimental::optional<int> res3 = ar3.getResult(std::chrono::milliseconds(100));
+    int res2 = ar2.getResult(std::chrono::milliseconds(0), 43);
+    std::experimental::optional<int> res3 = ar3.getResult(std::chrono::milliseconds(0));
     std::cerr <<  "ar1: " <<  res1 << ",  ar2: " << res2 << ",  res3: " << (res3 ? *res3 : 0) << "\n";
+
+    auto t1 = now();
+
+    nrg::AsyncResult<int> ar4;
+    ex(roundTrip, ar4);
+    ar4.getResult(std::chrono::milliseconds(200), 99);
+    auto dur = now()-t1;
+    std::cout <<  "ar4 duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(dur).count() << " ns\n";
 
     ex(print<int>, std::ref(std::cerr), 251);
     ex(print<int>, std::ref(std::cerr), 252);
