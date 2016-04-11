@@ -127,23 +127,13 @@ public:
 
     void getResult() const
     {
-        impl_->getResult();
+        return impl_->getResult();
     }
 
     template <typename Rep, typename Period>
     void getResult(const std::chrono::duration<Rep, Period>& timeout) const
     {
-        std::experimental::optional<R> result = impl_->getResult(timeout);
-        if (result) {
-            return std::move(*result);
-        }
-        return std::move(Default);
-    }
-
-    template <typename Rep,  typename Period>
-    std::experimental::optional<R> getResult(const std::chrono::duration<Rep, Period>& timeout) const
-    {
-        return impl_->getResult(timeout);
+        impl_->getResult(timeout);
     }
 
 private:
@@ -152,40 +142,34 @@ private:
 
     class Impl {
     public:
-        void setResult(R result)
+        void setResult()
         {
             std::lock_guard<std::mutex> lock(guard_);
-            result_ = std::move(result);
+            isSet_ = true;
             cond_.notify_one();
         }
 
-        R getResult() const {
+        void getResult() const {
             std::unique_lock<std::mutex> lock(guard_);
-            if (result_) {
-                return *result_;
+            if (!isSet_) {
+                cond_.wait(lock, [this]() { return isSet_; });
             }
-
-            cond_.wait(lock, [this]() { return static_cast<bool>(result_); });
-            return *result_;
         }
 
         template <typename Rep,  typename Period>
-        std::experimental::optional<R> getResult(const std::chrono::duration<Rep, Period>& timeout) const
+        void getResult(const std::chrono::duration<Rep, Period>& timeout) const
         {
             std::unique_lock<std::mutex> lock(guard_);
-            if (result_) {
-                return result_;
+            if (!isSet_) {
+                cond_.wait_for(lock, timeout, [this]() { return isSet_; });
             }
-
-            cond_.wait_for(lock, timeout, [this]() { return static_cast<bool>(result_); });
-            return result_;
         }
 
     private:
         mutable std::mutex guard_;
         mutable std::condition_variable cond_;
 
-        std::experimental::optional<R> result_;
+        bool isSet_ = false;
     };
 };
 

@@ -224,37 +224,37 @@ void f2(nrg::Executor<nrg::AsyncExecutor<nrg::TimedExecution>> ex)
     }
 }
 */
-/*
+
 void testTimed()
 {
     nrg::Executor<nrg::AsyncExecutor<nrg::TimedExecution>> ex(onError);
 
-    ex(now()+std::chrono::milliseconds(0), TimedCaller());
-    ex(now()+std::chrono::milliseconds(10), TimedCaller());
-    ex(now()+std::chrono::milliseconds(20), TimedCaller());
-    ex(now()+std::chrono::milliseconds(30), TimedCaller());
-    ex(now()+std::chrono::milliseconds(40), TimedCaller());
-    ex(now()+std::chrono::milliseconds(50), TimedCaller());
-    ex(now()+std::chrono::milliseconds(60), TimedCaller());
-    ex(now()+std::chrono::milliseconds(70), TimedCaller());
-    ex(now()+std::chrono::milliseconds(80), TimedCaller());
-    ex(now()+std::chrono::milliseconds(90), TimedCaller());
-    ex(now()+std::chrono::milliseconds(100), TimedCaller());
+    ex(now()+std::chrono::milliseconds(100), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(0), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(10), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(20), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(30), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(40), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(50), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(60), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(70), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(80), TimedCaller(""));
+    ex(now()+std::chrono::milliseconds(90), TimedCaller(""));
 
     //std::this_thread::sleep_for(std::chrono::seconds(2));
     ex(print<int>, std::ref(std::cerr), 2212);
     ex(print2, 42, "hallo123");
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
-*/
+
 int main()
 {
-    //test1<nrg::SyncExecutor>("SyncExecution");
-    //test1<nrg::AsyncExecutor<>>("Async-InstantExecution (default)");
-    //test1<nrg::AsyncExecutor<nrg::InstantExecution>>("Async-InstantExecution");
-    //test1<nrg::AsyncExecutor<nrg::TimedExecution>>("Async-TimedExecution");
+    test1<nrg::SyncExecutor>("SyncExecution");
+    test1<nrg::AsyncExecutor<>>("Async-InstantExecution (default)");
+    test1<nrg::AsyncExecutor<nrg::InstantExecution>>("Async-InstantExecution");
+    test1<nrg::AsyncExecutor<nrg::TimedExecution>>("Async-TimedExecution");
 
-    //testAsyncTimed();
+    testAsyncTimed();
 
     auto t1 = measure<nrg::SyncExecutor>("SyncExecution", 2);
     auto t2 = measure<nrg::AsyncExecutor<nrg::InstantExecution>>("Async-InstantExecution", 2);
@@ -265,9 +265,9 @@ int main()
     std::cout << "Async-InstantExecution: " << duration_cast<milliseconds>(t2).count() << " ms\n";
     std::cout << "Async-TimedExecution: " << duration_cast<milliseconds>(t3).count() << " ms\n";
 
-    //test<nrg::AsyncExecutor<nrg::TimedExecution>>();
+    test<nrg::AsyncExecutor<nrg::TimedExecution>>();
 
-    //testTimed();
+    testTimed();
     //int i=3;
     //nrg::Executor<nrg::AsyncTimedExecutor> ex(onError);
     //std::thread t1(f1, ex);
