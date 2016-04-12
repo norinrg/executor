@@ -29,6 +29,7 @@
 #include <executor/AsyncResult.h>
 #include <executor/Executor.h>
 #include <executor/InstantExecution.h>
+#include <executor/PrioExecution.h>
 #include <executor/SyncExecutor.h>
 #include <executor/TimedExecution.h>
 
@@ -253,17 +254,20 @@ int main()
     test1<nrg::AsyncExecutor<>>("Async-InstantExecution (default)");
     test1<nrg::AsyncExecutor<nrg::InstantExecution>>("Async-InstantExecution");
     test1<nrg::AsyncExecutor<nrg::TimedExecution>>("Async-TimedExecution");
+    test1<nrg::AsyncExecutor<nrg::PrioExecution>>("Async-PrioExecution");
 
     testAsyncTimed();
 
     auto t1 = measure<nrg::SyncExecutor>("SyncExecution", 2);
     auto t2 = measure<nrg::AsyncExecutor<nrg::InstantExecution>>("Async-InstantExecution", 2);
     auto t3 = measure<nrg::AsyncExecutor<nrg::TimedExecution>>("Async-TimedExecution", 2);
+    auto t4 = measure<nrg::AsyncExecutor<nrg::PrioExecution>>("Async-PrioExecution", 2);
 
     using namespace std::chrono;
     std::cout << "SynExecution: " << duration_cast<milliseconds>(t1).count() << " ms\n";
     std::cout << "Async-InstantExecution: " << duration_cast<milliseconds>(t2).count() << " ms\n";
     std::cout << "Async-TimedExecution: " << duration_cast<milliseconds>(t3).count() << " ms\n";
+    std::cout << "Async-PrioExecution: " << duration_cast<milliseconds>(t4).count() << " ms\n";
 
     test<nrg::AsyncExecutor<nrg::TimedExecution>>();
 

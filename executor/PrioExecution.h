@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef NRG_INSTANTEXECUTION_H
-#define NRG_INSTANTEXECUTION_H
+#ifndef NRG_PRIOEXECUTION_H
+#define NRG_PRIOEXECUTION_H
 
 #include <chrono>
 #include <functional>
@@ -35,20 +35,65 @@
 
 namespace nrg {
 
-struct InstantExecution {
-    using QueueElement = std::function<void()>;
-    using Queue = std::queue<QueueElement>;
+struct PrioExecution {
+
+    using Function = std::function<void()>;
+
+    struct QueueElement {
+        int prio;
+        int id;
+        Function what;
+
+        bool operator>(const QueueElement& rhs) const
+        {
+            return prio > rhs.prio ||
+                prio == rhs.prio && id < rhs.id;
+        }
+      };
+
+    using Queue = std::priority_queue<QueueElement, std::vector<QueueElement>, std::greater<QueueElement>>;
 
     static void push(Queue& queue, QueueElement elem)
     {
         queue.push(std::move(elem));
     }
 
+    static int next()
+    {
+        static int nxt = 0;
+        return nxt++;
+    }
+
+    // 1. no prio (-> 0), fn -> push 1
+    template<typename FN>
+    static void push(Queue& queue, FN fn)
+    {
+        QueueElement elem = { 0, next(), std::move(fn) };
+        push(queue, std::move(elem));
+    }
+
+    // 2. no prio (-> 0), param...
     template<typename FN, typename... Param>
     static void push(Queue& queue, FN fn, Param&&... param)
     {
-        QueueElement elem = [=]() { fn(param...); };
-        push(queue, elem);
+        QueueElement elem = { 0, next(), [=]() { fn(param...); } };
+        push(queue, std::move(elem));
+    }
+
+    // 3. prio, fn
+    template<typename FN>
+    static void push(Queue& queue, int prio, FN fn)
+    {
+        QueueElement elem = { prio, next(), std::move(fn) };
+        push(queue, std::move(elem));
+    }
+
+    // 5. prio, param...
+    template<typename FN, typename... Param>
+    static void push(Queue& queue, int prio, FN fn, Param&&... param)
+    {
+        QueueElement elem = { prio, next(), [=]() { fn(param...); } };
+        push(queue, std::move(elem));
     }
 
     static bool isEmpty(const Queue& queue)
@@ -56,9 +101,9 @@ struct InstantExecution {
         return queue.empty();
     }
 
-    static QueueElement& top(Queue& queue)
+    static const QueueElement& top(Queue& queue)
     {
-        return queue.front();
+        return queue.top();
     }
 
     static void pop(Queue& queue)
@@ -66,14 +111,14 @@ struct InstantExecution {
         queue.pop();
     }
 
-    static bool isDue(const QueueElement& elem)
+    static bool isDue(const QueueElement&)
     {
         return true;
     }
 
     static void execute(const QueueElement& elem)
     {
-        elem();
+        elem.what();
     }
 
     static std::chrono::steady_clock::duration whenIsDue(const QueueElement& elem)
