@@ -25,43 +25,19 @@
  *
  */
 
-#ifndef NRG_SYNCEXECUTOR_H
-#define NRG_SYNCEXECUTOR_H
+#ifndef NRG_EXECUTIONBASE_H
+#define NRG_EXECUTIONBASE_H
 
-#include <executor/ExecutionBase.h>
+#include <exception>
+#include <functional>
 
 namespace nrg {
 
-class SyncExecutor : public ExecutionBase {
-public:
-    SyncExecutor(ExceptionHandler onError)
-        : onError_(onError)
-    {
-    }
+struct ExecutionBase {
+    using ExceptionType = std::exception;
+    using ExceptionHandler = std::function<void(const ExceptionType&)>;
 
-    void stop() const
-    {
-    }
-
-    void operator()(Function fn)
-    {
-        try {
-            fn();
-        }
-        catch (ExceptionType& ex) {
-            onError_(ex);
-        }
-    }
-
-    template<typename FN, typename... Param>
-    void operator()(FN fn, Param&&... param)
-    {
-        Function f([&]() { fn(std::forward<Param>(param)...); });
-        (*this)(std::move(f));
-    }
-
-private:
-    ExceptionHandler onError_;
+    using Function = std::function<void()>;
 };
 
 }

@@ -28,20 +28,19 @@
 #ifndef NRG_EXECUTOR_H
 #define NRG_EXECUTOR_H
 
-#include <functional>
 #include <utility>
 
 namespace nrg {
 
-template<typename ExecutionPolicy>
+template<typename ExecutorPolicy>
 class Executor {
 public:
     Executor()
-        : executor_(Executor::ignore)
+        : executor_(ExecutorPolicy::ignore)
     {
     }
 
-    Executor(std::function<void(const std::exception&)> onError)
+    Executor(typename ExecutorPolicy::ExceptionHandler onError)
         : executor_(std::move(onError))
     {
     }
@@ -58,11 +57,7 @@ public:
     }
 
 private:
-    static void ignore(const std::exception&)
-    {
-    }
-
-    ExecutionPolicy executor_;
+    ExecutorPolicy executor_;
 };
 
 }

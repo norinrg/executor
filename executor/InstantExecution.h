@@ -28,15 +28,16 @@
 #ifndef NRG_INSTANTEXECUTION_H
 #define NRG_INSTANTEXECUTION_H
 
+#include <executor/ExecutionBase.h>
+
 #include <chrono>
-#include <functional>
 #include <queue>
 #include <utility>
 
 namespace nrg {
 
-struct InstantExecution {
-    using QueueElement = std::function<void()>;
+struct InstantExecution : ExecutionBase {
+    using QueueElement = Function;
     using Queue = std::queue<QueueElement>;
 
     static void push(Queue& queue, QueueElement elem)

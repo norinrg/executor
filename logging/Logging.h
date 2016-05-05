@@ -37,9 +37,21 @@
 // log_debug("cat", "int-val:%1, double-val:%2, str-val:%3, class_val:%4",
 //                  int_val, dbl_val, str_val, some_cls);
 // some_cls is anything having operator<<(stream&, some_cls)
+// maybe also:
+// log<debug>(...)
 
 namespace nrg {
 
+enum class LogLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+    Fatal,
+};
+
+template<LogLevel L>
 class Logging {
 };
 

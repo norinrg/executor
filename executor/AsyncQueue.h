@@ -28,8 +28,6 @@
 #define NRG_ASYNCQUEUE_H
 
 #include <condition_variable>
-#include <exception>
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -39,7 +37,7 @@ namespace nrg {
 template<typename AsyncStyle>
 class AsyncQueue {
 public:
-    AsyncQueue(std::function<void(const std::exception&)> onError)
+    AsyncQueue(typename AsyncStyle::ExceptionHandler onError)
         : running_(true)
         , onError_(std::move(onError))
         , thread_(std::thread(&AsyncQueue::run, this))
@@ -53,7 +51,7 @@ public:
 
     void stop()
     {
-        std::function<void()> fn([this]() {running_ = false; });
+        typename AsyncStyle::Function fn([this]() {running_ = false; });
         (*this)(std::move(fn));
     }
 
@@ -79,7 +77,7 @@ private:
                     try {
                         AsyncStyle::execute(elem);
                     }
-                    catch(std::exception& ex) {
+                    catch(typename AsyncStyle::ExceptionType& ex) {
                         onError_(ex);
                     }
                     lock.lock();
@@ -102,7 +100,7 @@ private:
     typename AsyncStyle::Queue queue_;
     bool running_;
 
-    std::function<void(const std::exception&)> onError_;
+    typename AsyncStyle::ExceptionHandler onError_;
     std::thread thread_;
 };
 

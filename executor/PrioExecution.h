@@ -28,17 +28,15 @@
 #ifndef NRG_PRIOEXECUTION_H
 #define NRG_PRIOEXECUTION_H
 
+#include <executor/ExecutionBase.h>
+
 #include <chrono>
-#include <functional>
 #include <queue>
 #include <utility>
 
 namespace nrg {
 
-struct PrioExecution {
-
-    using Function = std::function<void()>;
-
+struct PrioExecution : ExecutionBase {
     struct QueueElement {
         int prio;
         int id;

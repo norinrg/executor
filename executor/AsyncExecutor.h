@@ -31,8 +31,6 @@
 #include <executor/AsyncQueue.h>
 #include <executor/InstantExecution.h>
 
-#include <exception>
-#include <functional>
 #include <memory>
 
 namespace nrg {
@@ -40,7 +38,13 @@ namespace nrg {
 template<typename AsyncStyle = InstantExecution>
 class AsyncExecutor {
 public:
-    AsyncExecutor(std::function<void(const std::exception&)> onError)
+    using Function = typename AsyncStyle::Function;
+    using ExceptionHandler = typename AsyncStyle::ExceptionHandler;
+
+    static void ignore(typename AsyncStyle::ExceptionType)
+    {}
+
+    AsyncExecutor(ExceptionHandler onError)
         : impl_(std::make_shared<AsyncQueue<AsyncStyle>>(std::move(onError)))
     {
     }

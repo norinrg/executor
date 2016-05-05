@@ -33,6 +33,8 @@
 #include <executor/SyncExecutor.h>
 #include <executor/TimedExecution.h>
 
+#include <logging/Logging.h>
+
 #include <iostream>
 #include <thread>
 
@@ -94,7 +96,7 @@ void noParam()
     std::cerr << "Well done\n";
 }
 
-void onError(const std::exception& ex)
+void onError(const nrg::ExecutionBase::ExceptionType& ex)
 {
     std::cerr << "Exception: " << ex.what() << "\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -109,7 +111,7 @@ template<typename ExecutionMode>
 void test()
 {
     nrg::Executor<ExecutionMode> ex(onError);
-    std::function<void()> f = noParam;
+    typename ExecutionMode::Function f = noParam;
     ex(f);
 
     ex(noParam);
