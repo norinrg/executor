@@ -41,8 +41,8 @@ public:
         : running_(true)
         , onError_(std::move(onError))
         , thread_(std::thread(&AsyncQueue::run, this))
-    {
-    }
+    {}
+
     ~AsyncQueue()
     {
         stop();

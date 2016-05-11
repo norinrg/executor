@@ -41,8 +41,7 @@ template <typename R>
 class AsyncResult {
 public:
     AsyncResult() : impl_(std::make_shared<Impl>())
-    {
-    }
+    {}
 
     void setResult(R result)
     {
@@ -99,7 +98,7 @@ private:
             std::unique_lock<std::mutex> lock(guard_);
             if (result_) {
                 return result_;
-              }
+            }
 
             cond_.wait_for(lock, timeout, [this]() { return static_cast<bool>(result_); });
             return result_;
@@ -117,8 +116,7 @@ template <>
 class AsyncResult<void> {
 public:
     AsyncResult() : impl_(std::make_shared<Impl>())
-    {
-    }
+    {}
 
     void setResult()
     {

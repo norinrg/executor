@@ -35,19 +35,18 @@
 
 namespace nrg {
 
-template<typename AsyncStyle = InstantExecution>
+template<typename ExecutionStyle = InstantExecution>
 class AsyncExecutor {
 public:
-    using Function = typename AsyncStyle::Function;
-    using ExceptionHandler = typename AsyncStyle::ExceptionHandler;
+    using Function = typename ExecutionStyle::Function;
+    using ExceptionHandler = typename ExecutionStyle::ExceptionHandler;
 
-    static void ignore(typename AsyncStyle::ExceptionType)
+    static void ignore(typename ExecutionStyle::ExceptionType)
     {}
 
     AsyncExecutor(ExceptionHandler onError)
-        : impl_(std::make_shared<AsyncQueue<AsyncStyle>>(std::move(onError)))
-    {
-    }
+        : impl_(std::make_shared<AsyncQueue<ExecutionStyle>>(std::move(onError)))
+    {}
 
     void stop()
     {
@@ -61,7 +60,7 @@ public:
     }
 
 private:
-    std::shared_ptr<AsyncQueue<AsyncStyle>> impl_;
+    std::shared_ptr<AsyncQueue<ExecutionStyle>> impl_;
 };
 
 }

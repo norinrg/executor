@@ -36,12 +36,10 @@ class SyncExecutor : public ExecutionBase {
 public:
     SyncExecutor(ExceptionHandler onError)
         : onError_(onError)
-    {
-    }
+    {}
 
     void stop() const
-    {
-    }
+    {}
 
     void operator()(Function fn)
     {

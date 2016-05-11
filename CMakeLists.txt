@@ -16,8 +16,8 @@ add_executable(newpi
 #    SETUP_TARGET_FOR_COVERAGE(
 #        cover                # Name for custom target.
 #        newpi                # Name of the test driver executable that runs the tests.
-#                            # NOTE! This should always have a ZERO as exit code
-#                            # otherwise the coverage generation will not complete.
+#                             # NOTE! This should always have a ZERO as exit code
+#                             # otherwise the coverage generation will not complete.
 #        /home/norbert/dev/newPi/build/CMakeFiles/cover.dir           # Name of output directory.
 #    )
 ##ENDIF()

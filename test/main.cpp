@@ -46,8 +46,7 @@ std::chrono::steady_clock::time_point now()
 class TimedCaller {
 public:
     TimedCaller(const std::string& s) : msg_(s), started_(now())
-    {
-    }
+    {}
 
     void operator()() const
     {
@@ -207,27 +206,6 @@ void testAsyncTimed()
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-/*
-void f1(nrg::Executor<nrg::AsyncExecutor<nrg::TimedExecution>> ex)
-{
-    auto dt = std::chrono::milliseconds(100);
-
-    for (int i = 0; i != 1000; ++i) {
-        ex(now()+dt, TimedCaller());
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100*1000));
-}
-
-void f2(nrg::Executor<nrg::AsyncExecutor<nrg::TimedExecution>> ex)
-{
-    for (int i = 0; i != 100; ++i) {
-        ex(TimedCaller());
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-    }
-}
-*/
-
 void testTimed()
 {
     nrg::Executor<nrg::AsyncExecutor<nrg::TimedExecution>> ex(onError);
@@ -274,11 +252,4 @@ int main()
     test<nrg::AsyncExecutor<nrg::TimedExecution>>();
 
     testTimed();
-    //int i=3;
-    //nrg::Executor<nrg::AsyncTimedExecutor> ex(onError);
-    //std::thread t1(f1, ex);
-    //std::thread t2(f2, ex);
-
-    //t1.join();
-    //t2.join();
 }

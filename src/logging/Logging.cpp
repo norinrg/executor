@@ -27,6 +27,3 @@
 
 #include "Logging.h"
 
-void Logging::() {
-
-}

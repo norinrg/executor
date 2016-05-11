@@ -37,13 +37,11 @@ class Executor {
 public:
     Executor()
         : executor_(ExecutorPolicy::ignore)
-    {
-    }
+    {}
 
     Executor(typename ExecutorPolicy::ExceptionHandler onError)
         : executor_(std::move(onError))
-    {
-    }
+    {}
 
     void stop() const
     {
