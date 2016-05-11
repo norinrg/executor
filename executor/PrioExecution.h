@@ -28,7 +28,7 @@
 #ifndef NRG_PRIOEXECUTION_H
 #define NRG_PRIOEXECUTION_H
 
-#include <executor/ExecutionBase.h>
+#include <executor/detail/ExecutionBase.h>
 
 #include <chrono>
 #include <queue>
@@ -36,7 +36,7 @@
 
 namespace nrg {
 
-struct PrioExecution : ExecutionBase {
+struct PrioExecution : detail::ExecutionBase {
     struct QueueElement {
         int prio;
         int id;

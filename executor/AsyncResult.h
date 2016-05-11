@@ -30,9 +30,9 @@
 
 #include <chrono>
 #include <condition_variable>
+#include <experimental/optional>
 #include <memory>
 #include <mutex>
-#include <experimental/optional>
 #include <utility>
 
 namespace nrg {

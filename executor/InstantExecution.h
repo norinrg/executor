@@ -28,7 +28,7 @@
 #ifndef NRG_INSTANTEXECUTION_H
 #define NRG_INSTANTEXECUTION_H
 
-#include <executor/ExecutionBase.h>
+#include <executor/detail/ExecutionBase.h>
 
 #include <chrono>
 #include <queue>
@@ -36,7 +36,7 @@
 
 namespace nrg {
 
-struct InstantExecution : ExecutionBase {
+struct InstantExecution : detail::ExecutionBase {
     using QueueElement = Function;
     using Queue = std::queue<QueueElement>;
 

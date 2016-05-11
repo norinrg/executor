@@ -28,8 +28,9 @@
 #ifndef NRG_ASYNCEXECUTOR_H
 #define NRG_ASYNCEXECUTOR_H
 
-#include <executor/AsyncQueue.h>
 #include <executor/InstantExecution.h>
+
+#include <executor/detail/AsyncQueue.h>
 
 #include <memory>
 
@@ -45,7 +46,7 @@ public:
     {}
 
     AsyncExecutor(ExceptionHandler onError)
-        : impl_(std::make_shared<AsyncQueue<ExecutionStyle>>(std::move(onError)))
+        : impl_(std::make_shared<detail::AsyncQueue<ExecutionStyle>>(std::move(onError)))
     {}
 
     void stop()
@@ -60,7 +61,7 @@ public:
     }
 
 private:
-    std::shared_ptr<AsyncQueue<ExecutionStyle>> impl_;
+    std::shared_ptr<detail::AsyncQueue<ExecutionStyle>> impl_;
 };
 
 }

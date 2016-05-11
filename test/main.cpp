@@ -33,6 +33,7 @@
 #include <executor/SyncExecutor.h>
 #include <executor/TimedExecution.h>
 
+
 #include <logging/Logging.h>
 
 #include <iostream>
@@ -83,19 +84,19 @@ void print(std::ostream& stream, const T& val)
 {
     stream << val << "\n";
 }
-
+/*
 template<typename T>
 void bye(nrg::Executor<T>& ex)
 {
     ex.stop();
 }
-
+*/
 void noParam()
 {
     std::cerr << "Well done\n";
 }
 
-void onError(const nrg::ExecutionBase::ExceptionType& ex)
+void onError(const nrg::detail::ExecutionBase::ExceptionType& ex)
 {
     std::cerr << "Exception: " << ex.what() << "\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));

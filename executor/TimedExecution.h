@@ -28,7 +28,7 @@
 #ifndef NRG_TIMEDEXECUTION_H
 #define NRG_TIMEDEXECUTION_H
 
-#include <executor/ExecutionBase.h>
+#include <executor/detail/ExecutionBase.h>
 
 #include <chrono>
 #include <queue>
@@ -36,7 +36,7 @@
 
 namespace nrg {
 
-struct TimedExecution : ExecutionBase {
+struct TimedExecution : detail::ExecutionBase {
     struct QueueElement {
         std::chrono::steady_clock::time_point when;
         Function what;

@@ -28,11 +28,11 @@
 #ifndef NRG_SYNCEXECUTOR_H
 #define NRG_SYNCEXECUTOR_H
 
-#include <executor/ExecutionBase.h>
+#include <executor/detail/ExecutionBase.h>
 
 namespace nrg {
 
-class SyncExecutor : public ExecutionBase {
+class SyncExecutor : public detail::ExecutionBase {
 public:
     SyncExecutor(ExceptionHandler onError)
         : onError_(onError)

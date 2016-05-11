@@ -31,7 +31,7 @@
 #include <exception>
 #include <functional>
 
-namespace nrg {
+namespace nrg { namespace detail {
 
 struct ExecutionBase {
     using ExceptionType = std::exception;
@@ -40,6 +40,6 @@ struct ExecutionBase {
     using Function = std::function<void()>;
 };
 
-}
+}}
 
 #endif

@@ -32,7 +32,7 @@
 #include <mutex>
 #include <thread>
 
-namespace nrg {
+namespace nrg { namespace detail {
 
 template<typename AsyncStyle>
 class AsyncQueue {
@@ -104,6 +104,6 @@ private:
     std::thread thread_;
 };
 
-}
+}}
 
 #endif
