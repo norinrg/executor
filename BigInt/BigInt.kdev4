@@ -1,0 +1,4 @@
+[Project]
+Name=BigInt
+Manager=KDevCMakeManager
+VersionControl=kdevgit
