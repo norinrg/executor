@@ -37,7 +37,7 @@
 
 namespace nrg {
 
-template <typename R>
+template<typename R>
 class AsyncResult {
 public:
     AsyncResult() : impl_(std::make_shared<Impl>())
@@ -53,7 +53,7 @@ public:
         return impl_->getResult();
     }
 
-    template <typename Rep, typename Period>
+    template<typename Rep, typename Period>
     R getResult(const std::chrono::duration<Rep, Period>& timeout, R Default) const
     {
         std::experimental::optional<R> result = impl_->getResult(timeout);
@@ -63,7 +63,7 @@ public:
         return std::move(Default);
     }
 
-    template <typename Rep,  typename Period>
+    template<typename Rep,  typename Period>
     std::experimental::optional<R> getResult(const std::chrono::duration<Rep, Period>& timeout) const
     {
         return impl_->getResult(timeout);
@@ -92,7 +92,7 @@ private:
             return *result_;
         }
 
-        template <typename Rep,  typename Period>
+        template<typename Rep,  typename Period>
         std::experimental::optional<R> getResult(const std::chrono::duration<Rep, Period>& timeout) const
         {
             std::unique_lock<std::mutex> lock(guard_);
@@ -112,7 +112,7 @@ private:
     };
 };
 
-template <>
+template<>
 class AsyncResult<void> {
 public:
     AsyncResult() : impl_(std::make_shared<Impl>())
@@ -128,7 +128,7 @@ public:
         return impl_->getResult();
     }
 
-    template <typename Rep, typename Period>
+    template<typename Rep, typename Period>
     void getResult(const std::chrono::duration<Rep, Period>& timeout) const
     {
         impl_->getResult(timeout);
@@ -154,7 +154,7 @@ private:
             }
         }
 
-        template <typename Rep,  typename Period>
+        template<typename Rep,  typename Period>
         void getResult(const std::chrono::duration<Rep, Period>& timeout) const
         {
             std::unique_lock<std::mutex> lock(guard_);
