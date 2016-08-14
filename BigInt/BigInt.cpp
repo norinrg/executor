@@ -26,3 +26,48 @@
  */
 
 #include "BigInt.h"
+
+namespace std { namespace experimental { namespace seminumeric {
+
+integer operator+(const integer& lhs, const integer& rhs)
+{
+    return integer(lhs) += rhs;
+}
+
+integer operator-(const integer& lhs, const integer& rhs)
+{
+}
+
+integer operator*(const integer& lhs, const integer& rhs)
+{
+}
+
+integer operator/(const integer& lhs, const integer& rhs)
+{
+}
+
+integer operator%(const integer& lhs, const integer& rhs)
+{
+}
+
+integer& integer::operator+=(const integer& rhs)
+{
+}
+
+integer& integer::operator-=(const integer& rhs)
+{
+}
+
+integer& integer::operator*=(const integer& rhs)
+{
+}
+
+integer& integer::operator/=(const integer& rhs)
+{
+}
+
+integer& integer::operator%=(const integer& rhs)
+{
+}
+
+}}}

@@ -28,12 +28,12 @@
 #ifndef BIGINT_H
 #define BIGINT_H
 
+#include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
-namespace std {
-namespace experimental {
-namespace seminumeric {
+namespace std { namespace experimental { namespace seminumeric {
 
 class integer;
 class integer_data_proxy;
@@ -49,11 +49,11 @@ bool operator>(const integer& lhs, const integer& rhs) noexcept;
 bool operator>=(const integer& lhs, const integer& rhs) noexcept;
 
 // arithmetic operations
-integer operator+(const integer& lhs, const integer& rhs);
-integer operator-(const integer& lhs, const integer& rhs);
-integer operator*(const integer& lhs, const integer& rhs);
-integer operator/(const integer& lhs, const integer& rhs);
-integer operator%(const integer& lhs, const integer& rhs);
+integer operator+(const integer& lhs, const integer& rhs); //!
+integer operator-(const integer& lhs, const integer& rhs); //!
+integer operator*(const integer& lhs, const integer& rhs); //!
+integer operator/(const integer& lhs, const integer& rhs); //!
+integer operator%(const integer& lhs, const integer& rhs); //!
 
 std::pair<integer, integer> div(const integer& lhs, const integer& rhs);
 
@@ -103,9 +103,110 @@ template <class CharT, class Traits>
     std::basic_istream<CharT, Traits>& operator>>(
         std::basic_istream<CharT, Traits>& str, bits& val);
 
+class integer_data_proxy {
+public:
+    typedef unsigned char base_type;
+    typedef std::vector<base_type> internal_rep;
+
+    // type names
+    typedef base_type data_type;
+    typedef short arithmetic_type;
+    typedef unsigned short uarithmetic_type;
+
+    typedef internal_rep::iterator iterator;
+    typedef internal_rep::const_iterator const_iterator;
+    typedef internal_rep::reverse_iterator reverse_iterator;
+    typedef internal_rep::const_reverse_iterator const_reverse_iterator;
+
+    // constructors
+    integer_data_proxy(const integer_data_proxy& rhs) = delete;
+    integer_data_proxy(integer_data_proxy&& rhs)
+        : data_(move(rhs.data_))
+    {}
+
+    // assign
+    integer_data_proxy& operator=(const integer_data_proxy& rhs) = delete;
+    integer_data_proxy& operator=(integer_data_proxy&& rhs) = delete;
+
+    // iterators
+    iterator begin() noexcept
+    {
+        return data_.begin();
+    }
+
+    iterator end() noexcept
+    {
+        return data_.end();
+    }
+
+    reverse_iterator rbegin() noexcept
+    {
+        return data_.rbegin();
+    }
+
+    reverse_iterator rend() noexcept
+    {
+        return data_.rend();
+    }
+
+    const_iterator cbegin() const noexcept
+    {
+        return data_.cbegin();
+    }
+
+    const_iterator cend() const noexcept
+    {
+        return data_.cend();
+    }
+
+    const_reverse_iterator crbegin() const noexcept
+    {
+        return data_.crbegin();
+    }
+
+    const_reverse_iterator crend() const noexcept
+    {
+        return data_.crend();
+    }
+
+    // element access
+    data_type operator[](size_t pos) const
+    {
+        return data_[pos];
+    }
+
+    data_type& operator[](size_t pos)
+    {
+        return data_[pos];
+    }
+
+    // capacity
+    size_t size() const noexcept
+    {
+        return data_.size();
+    }
+
+    size_t capacity() const noexcept
+    {
+        return data_.capacity();
+    }
+
+    void reserve(size_t digits)
+    {
+        data_.reserve(digits);
+    }
+
+    void shrink_to_fit()
+    {
+        data_.shrink_to_fit();
+    }
+
+private:
+    internal_rep data_;
+};
+
 class integer {
 public:
-
     // constructors
     integer() noexcept;
 
@@ -153,11 +254,11 @@ public:
     int compare(const integer& rhs) const noexcept;
 
     // arithmetic operations
-    integer& operator+=(const integer& rhs);
-    integer& operator-=(const integer& rhs);
-    integer& operator*=(const integer& rhs);
-    integer& operator/=(const integer& rhs);
-    integer& operator%=(const integer& rhs);
+    integer& operator+=(const integer& rhs); //!
+    integer& operator-=(const integer& rhs); //!
+    integer& operator*=(const integer& rhs); //!
+    integer& operator/=(const integer& rhs); //!
+    integer& operator%=(const integer& rhs); //!
 
     integer& operator++();
     integer operator++(int);
@@ -193,53 +294,27 @@ public:
     size_t capacity() const noexcept;
     void reserve(size_t digits);
     void shrink_to_fit();
-};
 
-class integer_data_proxy {
-
-    typedef int* unspecified ;
-    // type names
-    typedef unspecified data_type;
-    typedef unspecified arithmetic_type;
-    typedef unspecified uarithmetic_type;
-    typedef unspecified iterator;
-    typedef unspecified const_iterator;
-    typedef unspecified reverse_iterator;
-    typedef unspecified const_reverse_iterator;
-
-    // constructors
-    integer_data_proxy(const integer_data_proxy& rhs) = delete;
-    integer_data_proxy(integer_data_proxy&& rhs);
-
-    // assign
-    integer_data_proxy& operator=(const integer_data_proxy& rhs) = delete;
-    integer_data_proxy& operator=(integer_data_proxy&& rhs) = delete;
-
-    // iterators
-    iterator begin() noexcept;
-    iterator end() noexcept;
-    reverse_iterator rbegin() noexcept;
-    reverse_iterator rend() noexcept;
-    const_iterator cbegin() const noexcept;
-    const_iterator cend() const noexcept;
-    const_reverse_iterator crbegin() const noexcept;
-    const_reverse_iterator crend() const noexcept;
-
-    // element access
-    data_type operator[](size_t pos) const;
-    data_type& operator[](size_t pos);
-
-    // capacity
-    size_t size() const noexcept;
-    size_t capacity() const noexcept;
-    void reserve(size_t digits);
-    void shrink_to_fit();
+private:
+    bool sign_;
+    bool use_proxy_;
+    union {
+        unsigned long long buffer_;
+        std::unique_ptr<integer_data_proxy> internal_proxy_;
+    };
 };
 
 class bits {
 public:
 
-    class reference;
+    class reference {
+    public:
+        reference& operator=(bool val) noexcept;
+        reference& operator=(const reference& rhs) noexcept;
+        bool operator~() const noexcept;
+        operator bool() const noexcept;
+        reference& flip() noexcept;
+    };
 
     // constructors
     bits() noexcept;

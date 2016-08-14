@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.6)
 project(bigint)
 
-add_executable(bigint main.cpp)
+add_executable(bigint
+    BigInt.cpp
+    main.cpp
+)
 
 install(TARGETS bigint RUNTIME DESTINATION bin)
