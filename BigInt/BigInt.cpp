@@ -33,7 +33,7 @@ integer operator+(const integer& lhs, const integer& rhs)
 {
     return integer(lhs) += rhs;
 }
-
+/*
 integer operator-(const integer& lhs, const integer& rhs)
 {
 }
@@ -49,25 +49,44 @@ integer operator/(const integer& lhs, const integer& rhs)
 integer operator%(const integer& lhs, const integer& rhs)
 {
 }
+*/
 
-integer& integer::operator+=(const integer& rhs)
+integer_data_proxy& integer_data_proxy::operator+=(const integer_data_proxy& rhs)
+{
+    integer_data_proxy prox(rhs,  int());
+    if (prox.neg_) {
+        prox.negate();
+    }
+
+    // !!!
+    data_ +=  rhs.data_;
+    return *this;
+}
+
+/*
+integer_data_proxy& integer_data_proxy::operator-=(const integer_data_proxy& rhs)
 {
 }
 
-integer& integer::operator-=(const integer& rhs)
+integer_data_proxy& integer_data_proxy::operator*=(const integer_data_proxy& rhs)
 {
 }
 
-integer& integer::operator*=(const integer& rhs)
+integer_data_proxy& integer_data_proxy::operator/=(const integer_data_proxy& rhs)
 {
 }
 
-integer& integer::operator/=(const integer& rhs)
+integer_data_proxy& integer_data_proxy::operator%=(const integer_data_proxy& rhs)
 {
 }
-
-integer& integer::operator%=(const integer& rhs)
+*/
+integer_data_proxy& integer_data_proxy::negate() noexcept
 {
+    neg_ = !neg_;
+    for (auto& val : data_) {
+        val = ~val;
+    }
+    return *this += 1;
 }
 
 }}}

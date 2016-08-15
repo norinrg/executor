@@ -35,6 +35,9 @@
 
 namespace std { namespace experimental { namespace seminumeric {
 
+
+/* class integer */
+
 class integer;
 class integer_data_proxy;
 
@@ -79,11 +82,11 @@ std::string to_string(const integer& val, int radix = 10);
 
 // I/O operations
 template <class CharT, class Traits>
-    std::basic_ostream<CharT, Traits>& operator<<(
-        std::basic_ostream<CharT, Traits>& str, const integer& val);
+std::basic_ostream<CharT, Traits>& operator<<(
+    std::basic_ostream<CharT, Traits>& str, const integer& val);
 template <class CharT, class Traits>
-    std::basic_istream<CharT, Traits>& operator>>(
-        std::basic_istream<CharT, Traits>& str, integer& val);
+std::basic_istream<CharT, Traits>& operator>>(
+    std::basic_istream<CharT, Traits>& str, integer& val);
 
 /* class bits */
 class bits;
@@ -97,152 +100,123 @@ bits operator^(const bits& lhs, const bits& rhs);
 
 // I/O operations
 template <class CharT, class Traits>
-    std::basic_ostream<CharT, Traits>& operator<<(
-        std::basic_ostream<CharT, Traits>& str, const bits& val);
+std::basic_ostream<CharT, Traits>& operator<<(
+std::basic_ostream<CharT, Traits>& str, const bits& val);
 template <class CharT, class Traits>
-    std::basic_istream<CharT, Traits>& operator>>(
-        std::basic_istream<CharT, Traits>& str, bits& val);
+std::basic_istream<CharT, Traits>& operator>>(
+std::basic_istream<CharT, Traits>& str, bits& val);
 
 class integer_data_proxy {
+
+    friend class integer;
+    using buffer_type = vector<unsigned char>;
+
 public:
-    typedef unsigned char base_type;
-    typedef std::vector<base_type> internal_rep;
-
     // type names
-    typedef base_type data_type;
-    typedef short arithmetic_type;
+    typedef buffer_type::value_type data_type;                          // char
+    typedef short arithmetic_type;                    // short
     typedef unsigned short uarithmetic_type;
-
-    typedef internal_rep::iterator iterator;
-    typedef internal_rep::const_iterator const_iterator;
-    typedef internal_rep::reverse_iterator reverse_iterator;
-    typedef internal_rep::const_reverse_iterator const_reverse_iterator;
+    typedef buffer_type::iterator iterator;
+    typedef buffer_type::const_iterator const_iterator;
+    typedef buffer_type::reverse_iterator reverse_iterator;
+    typedef buffer_type::const_reverse_iterator const_reverse_iterator;
 
     // constructors
     integer_data_proxy(const integer_data_proxy& rhs) = delete;
-    integer_data_proxy(integer_data_proxy&& rhs)
-        : data_(move(rhs.data_))
-    {}
+    integer_data_proxy(integer_data_proxy&& rhs);
 
     // assign
     integer_data_proxy& operator=(const integer_data_proxy& rhs) = delete;
     integer_data_proxy& operator=(integer_data_proxy&& rhs) = delete;
 
     // iterators
-    iterator begin() noexcept
-    {
-        return data_.begin();
-    }
-
-    iterator end() noexcept
-    {
-        return data_.end();
-    }
-
-    reverse_iterator rbegin() noexcept
-    {
-        return data_.rbegin();
-    }
-
-    reverse_iterator rend() noexcept
-    {
-        return data_.rend();
-    }
-
-    const_iterator cbegin() const noexcept
-    {
-        return data_.cbegin();
-    }
-
-    const_iterator cend() const noexcept
-    {
-        return data_.cend();
-    }
-
-    const_reverse_iterator crbegin() const noexcept
-    {
-        return data_.crbegin();
-    }
-
-    const_reverse_iterator crend() const noexcept
-    {
-        return data_.crend();
-    }
+    iterator begin() noexcept;
+    iterator end() noexcept;
+    reverse_iterator rbegin() noexcept;
+    reverse_iterator rend() noexcept;
+    const_iterator cbegin() const noexcept;
+    const_iterator cend() const noexcept;
+    const_reverse_iterator crbegin() const noexcept;
+    const_reverse_iterator crend() const noexcept;
 
     // element access
-    data_type operator[](size_t pos) const
-    {
-        return data_[pos];
-    }
-
-    data_type& operator[](size_t pos)
-    {
-        return data_[pos];
-    }
+    data_type operator[](size_t pos) const;
+    data_type& operator[](size_t pos);
 
     // capacity
-    size_t size() const noexcept
-    {
-        return data_.size();
-    }
-
-    size_t capacity() const noexcept
-    {
-        return data_.capacity();
-    }
-
-    void reserve(size_t digits)
-    {
-        data_.reserve(digits);
-    }
-
-    void shrink_to_fit()
-    {
-        data_.shrink_to_fit();
-    }
+    size_t size() const noexcept;
+    size_t capacity() const noexcept;
+    void reserve(size_t digits);
+    void shrink_to_fit();
 
 private:
-    internal_rep data_;
+    static constexpr uarithmetic_type base = uarithmetic_type(data_type(-1)) + 1;
+
+    template <class Ty>
+    integer_data_proxy(Ty rhs) noexcept
+      : neg_(rhs < 0)
+    {
+        if (neg_) {
+            rhs = -rhs;
+        }
+        while (rhs != 0) {
+            data_.push_back(rhs % base);
+            rhs /=  base;
+        }
+    }
+
+    integer_data_proxy(const integer_data_proxy& rhs, int)
+      : neg_(rhs.neg_)
+      , data_(rhs.data_)
+    {}
+
+    // arithmetic operations
+    integer_data_proxy& operator+=(const integer_data_proxy& rhs);
+    integer_data_proxy& operator-=(const integer_data_proxy& rhs);
+    integer_data_proxy& operator*=(const integer_data_proxy& rhs);
+    integer_data_proxy& operator/=(const integer_data_proxy& rhs);
+    integer_data_proxy& operator%=(const integer_data_proxy& rhs);
+
+    integer_data_proxy& negate() noexcept;
+
+private:
+    bool neg_;
+    buffer_type data_;
 };
 
 class integer {
 public:
+
     // constructors
-    integer() noexcept;
+    integer() noexcept : data_(0)
+    {}
 
-    integer(char val) noexcept;
-    integer(signed char val) noexcept;
-    integer(unsigned char val) noexcept;
-    integer(short val) noexcept;
-    integer(unsigned short val) noexcept;
-    integer(int val) noexcept;
-    integer(unsigned val) noexcept;
-    integer(long val) noexcept;
-    integer(unsigned long val) noexcept;
-    integer(long long val) noexcept;
-    integer(unsigned long long val) noexcept;
-
-    integer(float val);
-    integer(double val);
-    integer(long double val);
+    template <class Ty>
+    integer(Ty rhs) noexcept : data_(rhs)
+    {}
 
     integer(std::initializer_list<uint_least32_t> init);
 
     template <class CharT, class Traits, class Alloc>
-        explicit integer(const std::basic_string<CharT, Traits, Alloc>& str);
+    explicit integer(const std::basic_string<CharT, Traits, Alloc>& str);
 
     explicit integer(const bits& rhs);
     explicit integer(bits&& rhs);
 
-    integer(const integer& rhs);
-    integer(integer&& rhs) noexcept;
+    integer(const integer& rhs) : data_(rhs.data_, int())
+    {}
+
+    integer(integer&& rhs) noexcept : data_(move(rhs.data_))
+    {}
 
     // assign and swap
-    integer& operator=(const integer& rhs);
-    integer& operator=(integer&& rhs);
+    template <class Ty>
+    integer& operator=(Ty rhs);                         // arithmetic types only
     integer& operator=(const bits& rhs);
     integer& operator=(bits&& rhs);
-    void swap(integer& rhs);
+    integer& operator=(const integer& rhs);
+    integer& operator=(integer&& rhs);
+    void swap(integer& rhs) noexcept;
 
     // conversions
     explicit operator long long() const;
@@ -254,11 +228,16 @@ public:
     int compare(const integer& rhs) const noexcept;
 
     // arithmetic operations
-    integer& operator+=(const integer& rhs); //!
-    integer& operator-=(const integer& rhs); //!
-    integer& operator*=(const integer& rhs); //!
-    integer& operator/=(const integer& rhs); //!
-    integer& operator%=(const integer& rhs); //!
+    integer& operator+=(const integer& rhs)
+    {
+        data_ +=  rhs.data_;
+        return *this;
+    }
+
+    integer& operator-=(const integer& rhs);
+    integer& operator*=(const integer& rhs);
+    integer& operator/=(const integer& rhs);
+    integer& operator%=(const integer& rhs);
 
     integer& operator++();
     integer operator++(int);
@@ -269,8 +248,8 @@ public:
 
     integer& abs() noexcept;
     integer& negate() noexcept;
-    integer operator+() const;
-    integer operator-() const;
+    integer operator+() const noexcept;
+    integer operator-() const noexcept;
 
     integer& operator<<=(size_t rhs);
     integer& operator>>=(size_t rhs);
@@ -284,6 +263,7 @@ public:
     integer& powmod(const integer& exp, const integer& m);
 
     // observers
+    bool is_zero() const noexcept;
     bool is_odd() const noexcept;
 
     // accessors
@@ -296,40 +276,19 @@ public:
     void shrink_to_fit();
 
 private:
-    bool sign_;
-    bool use_proxy_;
-    union {
-        unsigned long long buffer_;
-        std::unique_ptr<integer_data_proxy> internal_proxy_;
-    };
+    integer_data_proxy data_;
 };
 
 class bits {
 public:
 
-    class reference {
-    public:
-        reference& operator=(bool val) noexcept;
-        reference& operator=(const reference& rhs) noexcept;
-        bool operator~() const noexcept;
-        operator bool() const noexcept;
-        reference& flip() noexcept;
-    };
+    class reference;
 
     // constructors
     bits() noexcept;
 
-    bits(char val) noexcept;
-    bits(signed char val) noexcept;
-    bits(unsigned char val) noexcept;
-    bits(short val) noexcept;
-    bits(unsigned short val) noexcept;
-    bits(int val) noexcept;
-    bits(unsigned val) noexcept;
-    bits(long val) noexcept;
-    bits(unsigned long val) noexcept;
-    bits(long long val) noexcept;
-    bits(unsigned long long val) noexcept;
+    template <class Ty>
+    bits(Ty rhs) noexcept;                              // integral types only
 
     bits(std::initializer_list<uint_least32_t> list);
 
@@ -348,21 +307,23 @@ public:
     explicit bits(const integer& val);
     explicit bits(integer&& val);
 
-    bits(const bits& other);
-    bits(bits&& other) noexcept;
+    bits(const bits& rhs);
+    bits(bits&& rhs) noexcept;
 
     // assign and swap
-    bits& operator=(const bits& rhs);
-    bits& operator=(bits&& rhs);
+    template <class Ty>
+    bits& operator=(Ty rhs);                            // integral types only
     bits& operator=(const integer& rhs);
     bits& operator=(integer&& rhs);
+    bits& operator=(const bits& rhs);
+    bits& operator=(bits&& rhs);
     void swap(bits& rhs) noexcept;
 
     // conversions
     unsigned long to_ulong() const;
     unsigned long long to_ullong() const;
     template <class CharT = char, class Traits = std::char_traits<CharT>, class Alloc = std::allocator<CharT> >
-        std::basic_string<CharT, Traits, Alloc> to_string(CharT zero = CharT('0'), CharT one = CharT('1')) const;
+    std::basic_string<CharT, Traits, Alloc> to_string(CharT zero = CharT('0'), CharT one = CharT('1')) const;
 
     // logical operations
     bits& operator&=(const bits& rhs);
@@ -400,7 +361,6 @@ public:
     size_t capacity() const noexcept;
     void reserve(size_t bit_count);
     void shrink_to_fit();
-
 };
 
 } /* namespace seminumeric */
