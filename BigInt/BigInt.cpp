@@ -29,6 +29,36 @@
 
 namespace std { namespace experimental { namespace seminumeric {
 
+bool operator==(const integer& lhs, const integer& rhs) noexcept
+{
+    return lhs.compare(rhs) == 0;
+}
+
+bool operator!=(const integer& lhs, const integer& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
+bool operator<(const integer& lhs, const integer& rhs) noexcept
+{
+    return lhs.compare(rhs) < 0;
+}
+
+bool operator<=(const integer& lhs, const integer& rhs) noexcept
+{
+    return !(rhs < lhs);
+}
+
+bool operator>(const integer& lhs, const integer& rhs) noexcept
+{
+    return rhs < lhs;
+}
+
+bool operator>=(const integer& lhs, const integer& rhs) noexcept
+{
+    return !(lhs < rhs);
+}
+
 integer operator+(const integer& lhs, const integer& rhs)
 {
     return integer(lhs) += rhs;
@@ -51,15 +81,45 @@ integer operator%(const integer& lhs, const integer& rhs)
 }
 */
 
+void integer_data_proxy::enlarge(int len)
+{
+    data_.reserve(len);
+    data_type subst = neg_ ? -1 : 0;
+    for (int i = data_.size(); i < len; ++i) {
+        data_.push_back(subst);
+    }
+}
+
+void integer_data_proxy::normalize()
+{
+    data_type subst = neg_ ? -1 : 0;
+    while (!data_.empty()) {
+        if (data_.back() != subst) {
+            break;
+        }
+        data_.pop_back();
+    }
+}
+
 integer_data_proxy& integer_data_proxy::operator+=(const integer_data_proxy& rhs)
 {
-    integer_data_proxy prox(rhs,  int());
+    size_t len = std::max(data_.size(),  rhs.data_.size()) + 1;
+    enlarge(len);
+
+    integer_data_proxy prox(rhs, len);
     if (prox.neg_) {
         prox.negate();
     }
 
-    // !!!
-    data_ +=  rhs.data_;
+    uarithmetic_type sum = 0;
+    for (int i = 0; i != len; ++i) {
+        sum += data_[i] + prox.data_[i];
+        data_[i] = sum % base;
+        sum /= base;
+    }
+
+    neg_ = sum != 0;
+    normalize();
     return *this;
 }
 
@@ -80,6 +140,59 @@ integer_data_proxy& integer_data_proxy::operator%=(const integer_data_proxy& rhs
 {
 }
 */
+
+int integer_data_proxy::compare(const integer_data_proxy& rhs) const noexcept
+{
+    if (neg_) {
+        if (rhs.neg_) {
+        } else {
+            //  lhs < rhs
+            return -1;
+        }
+        // both negative
+        size_t lSize = data_.size();
+        size_t rSize = rhs.data_.size();
+        if (lSize < rSize) {
+            return 1;
+          }
+        if (rSize < lSize) {
+            return -1;
+          }
+        for (auto&& lIter = data_.rbegin(), rIter = rhs.data_.rbegin(); lIter !=  data_.rend(); ++lIter, ++rIter) {
+            if (*lIter < *rIter) {
+                return 1;
+              }
+            if (*rIter < *lIter) {
+                return -1;
+              }
+          }
+        return 0;
+    } else {
+        if (rhs.neg_) {
+            //  lhs > rhs
+            return 1;
+        }
+        //  both positive:
+        size_t lSize = data_.size();
+        size_t rSize = rhs.data_.size();
+        if (lSize < rSize) {
+            return -1;
+        }
+        if (rSize < lSize) {
+            return 1;
+        }
+        for (auto&& lIter = data_.rbegin(), rIter = rhs.data_.rbegin(); lIter !=  data_.rend(); ++lIter, ++rIter) {
+            if (*lIter < *rIter) {
+                return -1;
+            }
+            if (*rIter < *lIter) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+}
+
 integer_data_proxy& integer_data_proxy::negate() noexcept
 {
     neg_ = !neg_;
@@ -88,5 +201,12 @@ integer_data_proxy& integer_data_proxy::negate() noexcept
     }
     return *this += 1;
 }
+
+integer& integer::operator+=(const integer& rhs)
+{
+    data_ +=  rhs.data_;
+    return *this;
+}
+
 
 }}}

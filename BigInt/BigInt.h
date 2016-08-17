@@ -159,16 +159,19 @@ private:
         if (neg_) {
             rhs = -rhs;
         }
+        data_.reserve(sizeof(Ty) / sizeof(data_type));
         while (rhs != 0) {
             data_.push_back(rhs % base);
             rhs /=  base;
         }
     }
 
-    integer_data_proxy(const integer_data_proxy& rhs, int)
+    integer_data_proxy(const integer_data_proxy& rhs, int len)
       : neg_(rhs.neg_)
       , data_(rhs.data_)
-    {}
+    {
+        enlarge(len);
+    }
 
     // arithmetic operations
     integer_data_proxy& operator+=(const integer_data_proxy& rhs);
@@ -177,7 +180,11 @@ private:
     integer_data_proxy& operator/=(const integer_data_proxy& rhs);
     integer_data_proxy& operator%=(const integer_data_proxy& rhs);
 
+    int compare(const integer_data_proxy& rhs) const noexcept;
     integer_data_proxy& negate() noexcept;
+
+    void enlarge(int len);
+    void normalize();
 
 private:
     bool neg_;
@@ -225,14 +232,13 @@ public:
     explicit operator bool() const noexcept;
 
     // comparisons
-    int compare(const integer& rhs) const noexcept;
+    int compare(const integer& rhs) const noexcept
+    {
+        return data_.compare(rhs.data_);
+    }
 
     // arithmetic operations
-    integer& operator+=(const integer& rhs)
-    {
-        data_ +=  rhs.data_;
-        return *this;
-    }
+    integer& operator+=(const integer& rhs);
 
     integer& operator-=(const integer& rhs);
     integer& operator*=(const integer& rhs);
