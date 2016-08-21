@@ -92,9 +92,8 @@ void integer_data_proxy::enlarge(int len)
 
 void integer_data_proxy::normalize()
 {
-    data_type subst = neg_ ? -1 : 0;
     while (!data_.empty()) {
-        if (data_.back() != subst) {
+        if (data_.back() != default_) {
             break;
         }
         data_.pop_back();
@@ -104,22 +103,22 @@ void integer_data_proxy::normalize()
 integer_data_proxy& integer_data_proxy::operator+=(const integer_data_proxy& rhs)
 {
     size_t len = std::max(data_.size(),  rhs.data_.size()) + 1;
-    enlarge(len);
-
-    integer_data_proxy prox(rhs, len);
-    if (prox.neg_) {
-        prox.negate();
-    }
 
     uarithmetic_type sum = 0;
     for (int i = 0; i != len; ++i) {
-        sum += data_[i] + prox.data_[i];
-        data_[i] = sum % base;
+        sum += (*this)[i] + rhs[i];
+        if (i == data_.size()) {
+            data_.push_back(sum % base);
+        } else {
+            data_[i] = sum % base;
+        }
         sum /= base;
     }
 
     neg_ = sum != 0;
+    default_ = neg_ ? data_type(-1) : data_type(0);
     normalize();
+
     return *this;
 }
 
@@ -200,6 +199,20 @@ integer_data_proxy& integer_data_proxy::negate() noexcept
         val = ~val;
     }
     return *this += 1;
+}
+
+integer_data_proxy::data_type integer_data_proxy::operator[](size_t pos) const
+{
+    return (const_cast<integer_data_proxy&>(*this))[pos];
+}
+
+integer_data_proxy::data_type& integer_data_proxy::operator[](size_t pos)
+{
+    if (pos < data_.size()) {
+        return data_[pos];
+    }
+
+    return default_;
 }
 
 integer& integer::operator+=(const integer& rhs)

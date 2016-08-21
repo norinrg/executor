@@ -27,7 +27,10 @@ void testAdd()
           }
     }
     */
-    doAssert(integer(1) + integer(-1) == integer(0));
+    integer one(1);
+    integer minusOne(-1);
+    integer zero(0);
+    doAssert(one + minusOne == zero);
 }
 
 int main(int argc, char **argv) {

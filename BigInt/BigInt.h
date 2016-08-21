@@ -155,8 +155,10 @@ private:
     template <class Ty>
     integer_data_proxy(Ty rhs) noexcept
       : neg_(rhs < 0)
+      , default_(neg_ ? data_type(-1) : data_type(0))
     {
-        if (neg_) {
+        bool localNeg = neg_;
+        if (localNeg) {
             rhs = -rhs;
         }
         data_.reserve(sizeof(Ty) / sizeof(data_type));
@@ -164,13 +166,19 @@ private:
             data_.push_back(rhs % base);
             rhs /=  base;
         }
+        if (localNeg) {
+            negate();
+            neg_ = true;
+            default_ = data_type(-1);
+        }
+        normalize();
     }
 
     integer_data_proxy(const integer_data_proxy& rhs, int len)
       : neg_(rhs.neg_)
       , data_(rhs.data_)
+      , default_(rhs.default_)
     {
-        enlarge(len);
     }
 
     // arithmetic operations
@@ -189,6 +197,7 @@ private:
 private:
     bool neg_;
     buffer_type data_;
+    data_type default_;
 };
 
 class integer {
