@@ -25,7 +25,7 @@
  *
  */
 
-#include "BigInt.h"
+#include "integer.h"
 
 namespace std { namespace experimental { namespace seminumeric {
 

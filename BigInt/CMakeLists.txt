@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(bigint)
 
 add_executable(bigint
-    BigInt.cpp
+    integer.cpp
     main.cpp
 )
 

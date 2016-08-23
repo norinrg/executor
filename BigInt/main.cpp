@@ -1,4 +1,4 @@
-#include "BigInt.h"
+#include "integer.h"
 
 #include <cassert>
 #include <iostream>
