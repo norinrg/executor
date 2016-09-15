@@ -157,6 +157,11 @@ private:
       : neg_(rhs < 0)
       , default_(neg_ ? data_type(-1) : data_type(0))
     {
+        data_type* data = static_cast<data_type*>(&rhs);
+        data_.reserve(sizeof(Ty) / sizeof(data_type));
+        for (int i = 0; i != sizeof(rhs); ++i) {
+            data_.push_back(rhs % base);
+        }
         bool localNeg = neg_;
         if (localNeg) {
             rhs = -rhs;

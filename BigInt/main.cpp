@@ -1,4 +1,4 @@
-#include "integer.h"
+#include "seminumeric"
 
 #include <cassert>
 #include <iostream>
@@ -12,7 +12,6 @@ void doAssert(bool b)
 
 void testAdd()
 {
-    /*
     doAssert(integer(  0) + integer(  0) == integer(  0));
     doAssert(integer(100) + integer(100) == integer(200));
     doAssert(integer(200) + integer(200) == integer(400));
@@ -26,7 +25,7 @@ void testAdd()
             //assert(int(i) + long(j) == long(i+j));
           }
     }
-    */
+
     integer one(1);
     integer minusOne(-1);
     integer zero(0);
