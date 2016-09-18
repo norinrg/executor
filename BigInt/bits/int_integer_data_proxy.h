@@ -55,8 +55,8 @@ class integer_data_proxy {
 
     // type names
     typedef buffer_type::value_type data_type;
-    typedef short               arithmetic_type;
-    typedef unsigned short      uarithmetic_type;
+    typedef short                   arithmetic_type;
+    typedef unsigned short          uarithmetic_type;
     typedef buffer_type::iterator               iterator;
     typedef buffer_type::const_iterator         const_iterator;
     typedef buffer_type::reverse_iterator       reverse_iterator;

@@ -41,7 +41,7 @@ public:
     bits() noexcept;
 
     template <class Ty>
-        bits(Ty rhs) noexcept;    // integral types only
+        bits(Ty rhs) noexcept;                            // integral types only
 
     bits(std::initializer_list<uint_least32_t> list);
 
@@ -122,9 +122,18 @@ public:
         bool operator~() const noexcept;
         operator bool() const noexcept;
         reference& flip() noexcept;
+
+    // new
+    private:
+        friend class bits;
     };
+
+private:
+    vector<unsigned char> data_;
 };
 
 }}}
+
+#include "int_bits.tcc"
 
 #endif

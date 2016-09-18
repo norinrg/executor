@@ -34,5 +34,5 @@ void testAdd()
 */
 
 int main(int argc, char **argv) {
-    testAdd();
+    //testAdd();
 }
