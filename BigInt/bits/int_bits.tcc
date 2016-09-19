@@ -27,27 +27,55 @@
 
 // from https://isocpp.org/files/papers/n4038.html
 
+#include <algorithm>
+
 namespace std { namespace experimental { namespace seminumeric {
 
+unsigned char onesComplement(unsigned char c)
+{
+    return ~c;
+}
+
 template <typename Ty>
-//static vector<unsigned char> initVector(typename enable_if<is_arithmetic<Ty>::value, Ty>::type rhs)
-static vector<unsigned char> initVector(Ty rhs, typename enable_if<is_arithmetic<Ty>::value>::type* = 0)
+void addValue(vector<unsigned char>& data, Ty rhs)
+{
+    auto size = sizeof rhs;
+    using uchar = unsigned char;
+    uchar* b = static_cast<uchar*>(static_cast<void*>(&rhs));
+    uchar* e = b + size;
+
+    // little endian
+    for (; b != e; ++b) {
+        data.push_back(onesComplement(*b));
+    }
+}
+
+template <typename Ty>
+static vector<unsigned char> initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = 0)
 {
     vector<unsigned char> result;
-    auto size = sizeof rhs;
-    result.reserve(size);
 
-    for (decltype(size)i = 0; i != size; ++i) {
-        
+    result.reserve(sizeof rhs);
+    addValue(result, rhs);
 
-    }
+    return result;
+}
+
+static vector<unsigned char> initVector(std::initializer_list<uint_least32_t> list)
+{
+    vector<unsigned char> result;
+
+    result.reserve(list.size() * sizeof(uint_least32_t));
+    for_each(rbegin(list), rend(list), [&result](auto val) {
+        addValue(result, val);
+    });
 
     return result;
 }
 
 // constructors
 inline bits::bits() noexcept
-    : bits(0)
+    : bits((unsigned char)(0))
 {}
 
 template <class Ty>
@@ -55,15 +83,19 @@ inline bits::bits(Ty rhs) noexcept
     : data_(initVector(rhs))
 {}
 
-/*
-bits::bits(std::initializer_list<uint_least32_t> list);
+bits::bits(std::initializer_list<uint_least32_t> list)
+    : data_(initVector(move(list)))
+{}
 
+/*
 template <class CharT, class Traits, class Alloc>
 explicit bits::bits(const basic_string<CharT, Traits, Alloc>& str,
     typename basic_string<CharT, Traits, Alloc>::size_t pos = 0,
     typename basic_string<CharT, Traits, Alloc>::size_t count = std::basic_string<CharT>::npos,
     CharT zero = CharT('0'),
-    CharT one = CharT('1'));
+    CharT one = CharT('1'))
+{}
+
 template <class CharT>
 explicit bits::bits(const CharT *ptr,
     typename basic_string<CharT>::size_t count = std::basic_string<CharT>::npos,
@@ -72,20 +104,48 @@ explicit bits::bits(const CharT *ptr,
 
 explicit bits::bits(const integer& val);
 explicit bits::bits(integer&& val);
+*/
 
-bits::bits(const bits& rhs);
-bits::bits(bits&& rhs) noexcept;
+bits::bits(const bits& rhs)
+    : data_(rhs.data_)
+{}
+
+bits::bits(bits&& rhs) noexcept
+    : data_(move(rhs.data_))
+{}
 
 // assign and swap
 template <class Ty>
-    bits& bits::operator=(Ty rhs); // integral types only
+bits& bits::operator=(Ty rhs) // integral types only
+{
+    data_ = initVector(rhs);
+    return *this;
+}
 
+/*
 bits& bits::operator=(const integer& rhs);
 bits& bits::operator=(integer&& rhs);
-bits& bits::operator=(const bits& rhs);
-bits& bits::operator=(bits&& rhs);
-void bits::swap(bits& rhs) noexcept;
+*/
 
+bits& bits::operator=(const bits& rhs)
+{
+    auto data = rhs.data_;
+    data.swap(data_);
+    return *this;
+}
+
+bits& bits::operator=(bits&& rhs)
+{
+    data_.swap(rhs.data_);
+    return *this;
+}
+
+void bits::swap(bits& rhs) noexcept
+{
+    data_.swap(rhs.data_);
+}
+
+/*
 // conversions
 unsigned long bits::to_ulong() const;
 unsigned long long bits::to_ullong() const;

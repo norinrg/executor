@@ -33,6 +33,16 @@ void testAdd()
 }
 */
 
+void testBits()
+{
+    bits b1;
+    bits b2 = 10;
+    bits b3 = {30, 20, 10};
+
+    int i = 10;
+}
+
 int main(int argc, char **argv) {
     //testAdd();
+    testBits();
 }
