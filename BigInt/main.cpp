@@ -33,16 +33,47 @@ void testAdd()
 }
 */
 
+void flipBit(bits& b, int bit)
+{
+    b[bit].flip();
+    std::cerr << "b:" << b.to_string() << "\n";
+}
+
 void testBits()
 {
     bits b1;
     bits b2 = 10;
     bits b3 = {30, 20, 10};
+    bits b4 = {9, 8, 7, 6, 5, 4, 3, 2, 1,  0};
 
-    int i = 10;
+    std::cerr << "b1:" << b1.to_string() << "\n";
+    std::cerr << "b2:" << b2.to_string() << "\n";
+    std::cerr << "b3:" << b3.to_string() << "\n";
+    std::cerr << "b4:" << b4.to_string() << "\n";
+
+    std::cerr << "Flipping bits\n";
+
+    flipBit(b1, 0);
+    flipBit(b1, 1);
+    flipBit(b1, 2);
+    flipBit(b1, 3);
+    flipBit(b1, 4);
+    flipBit(b1, 5);
+    flipBit(b1, 6);
+    flipBit(b1, 7);
+    flipBit(b1, 0);
+    flipBit(b1, 1);
+    flipBit(b1, 2);
+    flipBit(b1, 3);
+    flipBit(b1, 4);
+    flipBit(b1, 5);
+    flipBit(b1, 6);
+    flipBit(b1, 7);
+    flipBit(b1, 31);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     //testAdd();
     testBits();
 }

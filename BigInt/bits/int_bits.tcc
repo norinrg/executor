@@ -28,6 +28,7 @@
 // from https://isocpp.org/files/papers/n4038.html
 
 #include <algorithm>
+#include <climits>
 
 namespace std { namespace experimental { namespace seminumeric {
 
@@ -71,6 +72,14 @@ static vector<unsigned char> initVector(std::initializer_list<uint_least32_t> li
     });
 
     return result;
+}
+
+static void grow(vector<unsigned char>& data, size_t size)
+{
+    size_t oldSize = data.size();
+    for (; oldSize < size; ++oldSize) {
+        data.push_back(-1);
+    }
 }
 
 // constructors
@@ -149,9 +158,23 @@ void bits::swap(bits& rhs) noexcept
 // conversions
 unsigned long bits::to_ulong() const;
 unsigned long long bits::to_ullong() const;
-template <class CharT = char, class Traits = std::char_traits<CharT>, class Alloc = std::allocator<CharT> >
-    std::basic_string<CharT, Traits, Alloc> bits::to_string(CharT zero = CharT('0'), CharT one = CharT('1')) const;
+*/
 
+template <class CharT, class Traits, class Alloc>
+std::basic_string<CharT, Traits, Alloc> bits::to_string(CharT zero, CharT one) const
+{
+    std::string result;
+    result.reserve(data_.size() * CHAR_BIT);
+    for (auto c : data_) {
+        for (int i = 0; i != CHAR_BIT; ++i) {
+            result += ((c & (1 << i)) == (1 << i)) ? one : zero;
+        }
+    }
+
+    return result;
+}
+
+/*
 // logical operations
 bits& bits::operator&=(const bits& rhs);
 bits& bits::operator|=(const bits& rhs);
@@ -171,7 +194,18 @@ bits& bits::reset(size_t pos);
 bits& bits::flip() noexcept;
 bits& bits::flip(size_t pos);
 bool bits::operator[](size_t pos) const;
-reference bits::operator[](size_t pos);
+*/
+
+bits::reference bits::operator[](size_t pos)
+{
+    size_t byteNr = pos / CHAR_BIT;
+    grow(data_, byteNr+1);
+
+    reference result(data_[byteNr], pos % CHAR_BIT);
+    return result;
+}
+
+/*
 bool bits::test(size_t pos) const noexcept;
 bool bits::all() const noexcept;
 bool bits::any() const noexcept;
@@ -188,12 +222,40 @@ size_t bits::size() const noexcept;
 size_t bits::capacity() const noexcept;
 void bits::reserve(size_t bit_count);
 void bits::shrink_to_fit();
+*/
 
 // class bits::reference
-bits::reference& bits::reference::operator=(bool val) noexcept;
-bits::reference& bits::reference::operator=(const reference& rhs) noexcept;
-bool bits::reference::operator~() const noexcept;
-operator bool() const noexcept;
-bits::reference& bits::reference::flip() noexcept;
-*/
+bits::reference& bits::reference::operator=(bool val) noexcept
+{
+    uc ^= (-int(val) ^ uc) & (1 << bit);
+    return *this;
+}
+
+bits::reference& bits::reference::operator=(const reference& rhs) noexcept
+{
+    (*this) = (bool)rhs;
+    return *this;
+}
+
+bool bits::reference::operator~() const noexcept
+{
+    return (bool)(*this);
+}
+
+bits::reference::operator bool() const noexcept
+{
+    return (uc >> bit) & 1;
+}
+
+bits::reference& bits::reference::flip() noexcept
+{
+    uc ^= 1 << bit;
+    return *this;
+}
+
+bits::reference::reference(unsigned char& uc, int bit)
+    : uc(uc)
+    , bit(bit)
+{}
+
 }}}

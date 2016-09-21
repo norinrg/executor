@@ -126,6 +126,12 @@ public:
     // new
     private:
         friend class bits;
+
+        reference(unsigned char& uc,  int bit);
+
+    private:
+        unsigned char& uc;
+        int bit;
     };
 
 private:
