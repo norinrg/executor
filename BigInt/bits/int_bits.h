@@ -41,7 +41,7 @@ public:
     bits() noexcept;
 
     template <class Ty>
-        bits(Ty rhs) noexcept;                            // integral types only
+    bits(Ty rhs) noexcept;                            // integral types only
 
     bits(std::initializer_list<uint_least32_t> list);
 
@@ -134,8 +134,22 @@ public:
         int bit;
     };
 
+//  new
 private:
-    vector<unsigned char> data_;
+    using byte = unsigned char;
+
+    template <typename Ty>
+    static void addValue(vector<byte>& data, Ty rhs);
+
+    template <typename Ty>
+    static vector<byte> initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = 0);
+    static vector<byte> initVector(std::initializer_list<uint_least32_t> list);
+
+    void grow(size_t size);
+    reference make_existing_reference(size_t pos);
+
+private:
+    vector<byte> data_;
 };
 
 }}}

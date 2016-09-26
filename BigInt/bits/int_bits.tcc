@@ -31,60 +31,18 @@
 #include <climits>
 
 namespace std { namespace experimental { namespace seminumeric {
-
-unsigned char onesComplement(unsigned char c)
-{
-    return ~c;
-}
-
-template <typename Ty>
-void addValue(vector<unsigned char>& data, Ty rhs)
-{
-    auto size = sizeof rhs;
-    using uchar = unsigned char;
-    uchar* b = static_cast<uchar*>(static_cast<void*>(&rhs));
-    uchar* e = b + size;
-
-    // little endian
-    for (; b != e; ++b) {
-        data.push_back(onesComplement(*b));
-    }
-}
-
-template <typename Ty>
-static vector<unsigned char> initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = 0)
-{
-    vector<unsigned char> result;
-
-    result.reserve(sizeof rhs);
-    addValue(result, rhs);
-
-    return result;
-}
-
-static vector<unsigned char> initVector(std::initializer_list<uint_least32_t> list)
-{
-    vector<unsigned char> result;
-
-    result.reserve(list.size() * sizeof(uint_least32_t));
-    for_each(rbegin(list), rend(list), [&result](auto val) {
-        addValue(result, val);
-    });
-
-    return result;
-}
-
-static void grow(vector<unsigned char>& data, size_t size)
+/*
+static void grow(vector<byte>& data, size_t size)
 {
     size_t oldSize = data.size();
     for (; oldSize < size; ++oldSize) {
         data.push_back(-1);
     }
 }
-
+*/
 // constructors
 inline bits::bits() noexcept
-    : bits((unsigned char)(0))
+    : bits((byte)(0))
 {}
 
 template <class Ty>
@@ -192,17 +150,21 @@ bits& bits::set(size_t pos, bool val = true);
 bits& bits::reset() noexcept;
 bits& bits::reset(size_t pos);
 bits& bits::flip() noexcept;
-bits& bits::flip(size_t pos);
-bool bits::operator[](size_t pos) const;
+*/
+
+bits& bits::flip(size_t pos)
+{
+    reference ref = make_existing_reference(pos);
+    ref.flip();
+    return *this;
+}
+
+/*bool bits::operator[](size_t pos) const;
 */
 
 bits::reference bits::operator[](size_t pos)
 {
-    size_t byteNr = pos / CHAR_BIT;
-    grow(data_, byteNr+1);
-
-    reference result(data_[byteNr], pos % CHAR_BIT);
-    return result;
+    return make_existing_reference(pos);
 }
 
 /*
@@ -253,9 +215,61 @@ bits::reference& bits::reference::flip() noexcept
     return *this;
 }
 
-bits::reference::reference(unsigned char& uc, int bit)
+bits::reference::reference(byte& uc, int bit)
     : uc(uc)
     , bit(bit)
 {}
+
+template <typename Ty>
+inline void bits::addValue(vector<byte>& data, Ty rhs)
+{
+    if (rhs < 0) {
+        rhs = ~(-rhs);
+    }
+    auto size = sizeof rhs;
+    auto b = static_cast<byte*>(static_cast<void*>(&rhs));
+    auto e = b + size;
+
+    // little endian
+    copy(b, e, back_inserter(data));
+}
+
+template <typename Ty>
+inline vector<bits::byte> bits::initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type*)
+{
+    vector<byte> result;
+
+    result.reserve(sizeof rhs);
+    addValue(result, rhs);
+
+    return move(result);
+}
+
+inline vector<bits::byte> bits::initVector(std::initializer_list<uint_least32_t> list)
+{
+    vector<byte> result;
+
+    result.reserve(list.size() * sizeof(uint_least32_t));
+    for_each(rbegin(list), rend(list), [&result](auto val) {
+        addValue(result, val);
+    });
+
+    return move(result);
+}
+
+inline void bits::grow(size_t size)
+{
+    size_t oldSize = data_.size();
+    for (; oldSize < size; ++oldSize) {
+        data_.push_back(0);
+    }
+}
+
+inline bits::reference bits::make_existing_reference(size_t pos)
+{
+    auto byteNr = pos / CHAR_BIT;
+    grow(byteNr+1);
+    return reference(data_[byteNr], pos % CHAR_BIT);
+}
 
 }}}
