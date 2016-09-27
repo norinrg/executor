@@ -29,17 +29,10 @@
 
 #include <algorithm>
 #include <climits>
+#include <stdexcept>
 
 namespace std { namespace experimental { namespace seminumeric {
-/*
-static void grow(vector<byte>& data, size_t size)
-{
-    size_t oldSize = data.size();
-    for (; oldSize < size; ++oldSize) {
-        data.push_back(-1);
-    }
-}
-*/
+
 // constructors
 inline bits::bits() noexcept
     : bits((byte)(0))
@@ -119,11 +112,38 @@ void bits::swap(bits& rhs) noexcept
     std::swap(is_negative_, rhs.is_negative_);
 }
 
-/*
 // conversions
-unsigned long bits::to_ulong() const;
-unsigned long long bits::to_ullong() const;
-*/
+unsigned long bits::to_ulong() const
+{
+    if (data_.size() > sizeof (unsigned long)) {
+        throw range_error("out of range");
+    }
+    unsigned long result = 0UL;
+    size_t shift = 0;
+    for (auto c : data_) {
+        unsigned long b = c;
+        result += b << shift;
+        shift += CHAR_BIT;
+    }
+
+    return result;
+}
+
+unsigned long long bits::to_ullong() const
+{
+    if (data_.size() > sizeof (unsigned long long)) {
+        throw range_error("out of range");
+    }
+    unsigned long long result = 0ULL;
+    size_t shift = 0;
+    for (auto c : data_) {
+        unsigned long long b = c;
+        result += b << shift;
+        shift += CHAR_BIT;
+    }
+
+    return result;
+}
 
 template <class CharT, class Traits, class Alloc>
 std::basic_string<CharT, Traits, Alloc> bits::to_string(CharT zero, CharT one) const

@@ -39,8 +39,85 @@ void flipBit(bits& b, int bit)
     std::cerr << "b:" << b.to_string() << "\n";
 }
 
+void bit_testConstructors()
+{
+    bits b1;
+    assert(b1.to_string() == "00000000");
+
+    bits b2(1);
+    assert(b2.to_string() == "00000000000000000000000000000001");
+
+    bits b3(-1);
+    assert(b3.to_string() == "11111111111111111111111111111110");
+
+    bits b4{1,  10,  1,  10};
+    assert(b4.to_string() ==    "00000000000000000000000000000001"
+                                "00000000000000000000000000001010"
+                                "00000000000000000000000000000001"
+                                "00000000000000000000000000001010");
+
+    bits b5(b1);
+    assert(b1.to_string() == "00000000");
+    assert(b5.to_string() == "00000000");
+
+    bits b6(std::move(b4));
+    assert(b6.to_string() ==    "00000000000000000000000000000001"
+                                "00000000000000000000000000001010"
+                                "00000000000000000000000000000001"
+                                "00000000000000000000000000001010");
+    assert(b4.to_string() == "");
+}
+
+void bit_testAssignment()
+{
+    bits b1;
+    bits b2;
+    b1[9] = true;
+    b2 = b1;
+
+    assert(b1.to_string() ==    "00000010"
+                                "00000000");
+    assert(b1.to_string() == b2.to_string());
+
+    bits b3 = -1;
+    b3[9].flip();
+    assert(b3.to_string() ==    "11111111"
+                                "11111111"
+                                "11111101"
+                                "11111110");
+    b3[33].flip();
+    assert(b3.to_string() ==    "11111101"
+                                "11111111"
+                                "11111111"
+                                "11111101"
+                                "11111110");
+
+    b1 = 1024;
+    assert(b1.to_ulong() == 1024UL);
+}
+
+void bit_testConversion()
+{
+    bits b;
+    assert(b.to_ulong() == 0UL);
+
+    b = bits{1024, 10, 22, 44};
+    try {
+        auto ul = b.to_ulong();
+        assert(false);
+    }
+    catch (std::range_error&) {
+    }
+    b = bits{1024, 10, };
+    assert(b.to_ullong() == 0x000004000000000aULL);
+}
+
 void testBits()
 {
+    bit_testConstructors();
+    bit_testAssignment();
+    bit_testConversion();
+
     bits b1;
     bits b2a = 10;
     bits b2b = -10;
