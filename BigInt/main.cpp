@@ -112,11 +112,23 @@ void bit_testConversion()
     assert(b.to_ullong() == 0x000004000000000aULL);
 }
 
+void bit_testOperators()
+{
+    bits b1 = 0xffffu;
+    bits b2 = 0xff00u;
+    b1 &=  b2;
+    assert(b1.to_ulong() == 0xff00u);
+
+    bits b3 = ~b1;
+    assert(b3.to_ulong() == 0xffff00ffu);
+}
+
 void testBits()
 {
     bit_testConstructors();
     bit_testAssignment();
     bit_testConversion();
+    bit_testOperators();
 
     bits b1;
     bits b2a = 10;

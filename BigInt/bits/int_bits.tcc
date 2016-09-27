@@ -163,13 +163,56 @@ std::basic_string<CharT, Traits, Alloc> bits::to_string(CharT zero, CharT one) c
     return result;
 }
 
-/*
 // logical operations
-bits& bits::operator&=(const bits& rhs);
-bits& bits::operator|=(const bits& rhs);
-bits& bits::operator^=(const bits& rhs);
-bits bits::operator~() const;
+bits& bits::operator&=(const bits& rhs)
+{
+    grow(rhs.data_.size());
+    transform(begin(data_), end(data_), begin(rhs.data_), begin(data_),
+              [](auto b1, auto b2) {
+                  return b1 & b2;
+              }
+    );
 
+    return *this;
+}
+
+bits& bits::operator|=(const bits& rhs)
+{
+    grow(rhs.data_.size());
+    transform(begin(data_), end(data_), begin(rhs.data_), begin(data_),
+              [](auto b1, auto b2) {
+                  return b1 | b2;
+              }
+    );
+
+    return *this;
+}
+
+bits& bits::operator^=(const bits& rhs)
+{
+    grow(rhs.data_.size());
+    transform(begin(data_), end(data_), begin(rhs.data_), begin(data_),
+              [](auto b1, auto b2) {
+                  return b1 ^ b2;
+              }
+    );
+
+    return *this;
+}
+
+bits bits::operator~() const
+{
+    bits rhs(*this);
+    transform(begin(rhs.data_), end(rhs.data_), begin(rhs.data_),
+              [](auto b1) {
+                  return ~b1;
+              }
+    );
+
+    return rhs;
+}
+
+/*
 bits& bits::operator<<=(size_t rhs);
 bits& bits::operator>>=(size_t rhs);
 bits& bits::operator<<(size_t rhs) const;
