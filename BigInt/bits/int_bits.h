@@ -65,7 +65,7 @@ public:
 
     // assign and swap
     template <class Ty>
-        bits& operator=(Ty rhs); // integral types only
+    bits& operator=(Ty rhs); // integral types only
     bits& operator=(const integer& rhs);
     bits& operator=(integer&& rhs);
     bits& operator=(const bits& rhs);
@@ -149,6 +149,7 @@ private:
     reference make_existing_reference(size_t pos);
 
 private:
+    bool is_negative_ = false;
     vector<byte> data_;
 };
 

@@ -47,11 +47,13 @@ inline bits::bits() noexcept
 
 template <class Ty>
 inline bits::bits(Ty rhs) noexcept
-    : data_(initVector(rhs))
+    : is_negative_(rhs < 0)
+    , data_(initVector(rhs))
 {}
 
 bits::bits(std::initializer_list<uint_least32_t> list)
-    : data_(initVector(move(list)))
+    : is_negative_(false)
+    , data_(initVector(move(list)))
 {}
 
 /*
@@ -74,18 +76,22 @@ explicit bits::bits(integer&& val);
 */
 
 bits::bits(const bits& rhs)
-    : data_(rhs.data_)
+    : is_negative_(rhs.is_negative_)
+    , data_(rhs.data_)
 {}
 
 bits::bits(bits&& rhs) noexcept
-    : data_(move(rhs.data_))
+    : is_negative_(rhs.is_negative_)
+    , data_(move(rhs.data_))
 {}
 
 // assign and swap
 template <class Ty>
 bits& bits::operator=(Ty rhs) // integral types only
 {
+    is_negative_ = rhs < 0;
     data_ = initVector(rhs);
+
     return *this;
 }
 
@@ -96,20 +102,21 @@ bits& bits::operator=(integer&& rhs);
 
 bits& bits::operator=(const bits& rhs)
 {
-    auto data = rhs.data_;
-    data.swap(data_);
+    auto that(rhs);
+    swap(that);
     return *this;
 }
 
 bits& bits::operator=(bits&& rhs)
 {
-    data_.swap(rhs.data_);
+    swap(rhs);
     return *this;
 }
 
 void bits::swap(bits& rhs) noexcept
 {
     data_.swap(rhs.data_);
+    std::swap(is_negative_, rhs.is_negative_);
 }
 
 /*
@@ -121,12 +128,16 @@ unsigned long long bits::to_ullong() const;
 template <class CharT, class Traits, class Alloc>
 std::basic_string<CharT, Traits, Alloc> bits::to_string(CharT zero, CharT one) const
 {
-    std::string result;
-    result.reserve(data_.size() * CHAR_BIT);
+    size_t pos = data_.size();
+    std::basic_string<CharT, Traits, Alloc> result(pos * CHAR_BIT, zero);
+
     for (auto c : data_) {
         for (int i = 0; i != CHAR_BIT; ++i) {
-            result += ((c & (1 << i)) == (1 << i)) ? one : zero;
+            if (c & (1 << i)) {
+                result[pos*CHAR_BIT-(i+1)] = one;
+            }
         }
+        --pos;
     }
 
     return result;
@@ -261,7 +272,7 @@ inline void bits::grow(size_t size)
 {
     size_t oldSize = data_.size();
     for (; oldSize < size; ++oldSize) {
-        data_.push_back(0);
+        data_.push_back(is_negative_ ? -1 : 0);
     }
 }
 

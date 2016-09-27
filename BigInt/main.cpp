@@ -45,7 +45,7 @@ void testBits()
     bits b2a = 10;
     bits b2b = -10;
     bits b3 = {30, 20, 10};
-    bits b4 = {9, 8, 7, 6, 5, 4, 3, 2, 1,  0};
+    bits b4 = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
 
     std::cerr << "b1:" << b1.to_string() << "\n";
     std::cerr << "b2a:" << b2a.to_string() << "\n";
@@ -55,14 +55,18 @@ void testBits()
 
     std::cerr << "Flipping bits\n";
 
-    assert(b1.flip(0).to_string() ==  "10000000");
-    assert(b1.flip(1).to_string() ==  "11000000");
-    assert(b1.flip(2).to_string() ==  "11100000");
-    assert(b1.flip(3).to_string() ==  "11110000");
-    assert(b1.flip(4).to_string() ==  "11111000");
-    assert(b1.flip(5).to_string() ==  "11111100");
-    assert(b1.flip(6).to_string() ==  "11111110");
+    assert(b1.to_string()         ==  "00000000");
+    assert(b1.flip(0).to_string() ==  "00000001");
+    assert(b1.flip(1).to_string() ==  "00000011");
+    assert(b1.flip(2).to_string() ==  "00000111");
+    assert(b1.flip(3).to_string() ==  "00001111");
+    assert(b1.flip(4).to_string() ==  "00011111");
+    assert(b1.flip(5).to_string() ==  "00111111");
+    assert(b1.flip(6).to_string() ==  "01111111");
     assert(b1.flip(7).to_string() ==  "11111111");
+
+    assert(b1.flip(20).to_string() ==  "000100000000000011111111");
+    std::cerr << "b1:" << b1.to_string() << "\n";
 }
 
 int main(int argc, char **argv)
