@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <iostream>
 #include <stdexcept>
 
 namespace std { namespace experimental { namespace seminumeric {
@@ -42,12 +43,16 @@ template <class Ty>
 inline bits::bits(Ty rhs) noexcept
     : is_negative_(rhs < 0)
     , data_(initVector(rhs))
-{}
+{
+    shrink();
+}
 
 bits::bits(std::initializer_list<uint_least32_t> list)
     : is_negative_(false)
     , data_(initVector(move(list)))
-{}
+{
+    shrink();
+}
 
 /*
 template <class CharT, class Traits, class Alloc>
@@ -56,7 +61,9 @@ explicit bits::bits(const basic_string<CharT, Traits, Alloc>& str,
     typename basic_string<CharT, Traits, Alloc>::size_t count = std::basic_string<CharT>::npos,
     CharT zero = CharT('0'),
     CharT one = CharT('1'))
-{}
+{
+    shrink();
+}
 
 template <class CharT>
 explicit bits::bits(const CharT *ptr,
@@ -85,6 +92,7 @@ bits& bits::operator=(Ty rhs) // integral types only
     is_negative_ = rhs < 0;
     data_ = initVector(rhs);
 
+    shrink();
     return *this;
 }
 
@@ -157,7 +165,12 @@ std::basic_string<CharT, Traits, Alloc> bits::to_string(CharT zero, CharT one) c
                 result[pos*CHAR_BIT-(i+1)] = one;
             }
         }
+
         --pos;
+    }
+
+    if (data_.empty()) {
+        result = std::string(CHAR_BIT, is_negative_ ? one : zero);
     }
 
     return result;
@@ -168,10 +181,11 @@ bits& bits::operator&=(const bits& rhs)
 {
     grow(rhs.data_.size());
     transform(begin(data_), end(data_), begin(rhs.data_), begin(data_),
-              [](auto b1, auto b2) {
-                  return b1 & b2;
-              }
+        [](auto b1, auto b2) {
+            return b1 & b2;
+        }
     );
+    shrink();
 
     return *this;
 }
@@ -180,10 +194,11 @@ bits& bits::operator|=(const bits& rhs)
 {
     grow(rhs.data_.size());
     transform(begin(data_), end(data_), begin(rhs.data_), begin(data_),
-              [](auto b1, auto b2) {
-                  return b1 | b2;
-              }
+        [](auto b1, auto b2) {
+            return b1 | b2;
+        }
     );
+    shrink();
 
     return *this;
 }
@@ -192,10 +207,11 @@ bits& bits::operator^=(const bits& rhs)
 {
     grow(rhs.data_.size());
     transform(begin(data_), end(data_), begin(rhs.data_), begin(data_),
-              [](auto b1, auto b2) {
-                  return b1 ^ b2;
-              }
+        [](auto b1, auto b2) {
+            return b1 ^ b2;
+        }
     );
+    shrink();
 
     return *this;
 }
@@ -204,16 +220,50 @@ bits bits::operator~() const
 {
     bits rhs(*this);
     transform(begin(rhs.data_), end(rhs.data_), begin(rhs.data_),
-              [](auto b1) {
-                  return ~b1;
-              }
+        [](auto b1) {
+            return ~b1;
+        }
     );
+    rhs.shrink();
 
     return rhs;
 }
 
+bits& bits::operator<<=(size_t rhs)
+{
+    auto byteShift = (rhs+CHAR_BIT-1)/CHAR_BIT;
+    auto bitShift  = rhs%CHAR_BIT;
+    auto growSize  = byteShift;
+
+    grow(max(data_.size()+growSize, size_t(2)));
+
+    auto b1Origin = rbegin(data_)+byteShift;
+    auto e1Origin = rend(data_);
+
+    auto b2Origin = b1Origin-1;
+    auto bDest = rbegin(data_);
+
+    transform(b1Origin, e1Origin, b2Origin, bDest,
+        [bitShift](auto b1, auto b2) {
+            if (bitShift == 0) {
+                return b1;
+            }
+            byte result = (b1 >> ((CHAR_BIT - bitShift)%CHAR_BIT)) | (b2 << bitShift);
+            return result;
+        }
+    );
+    if (bitShift != 0) {
+        --byteShift;
+    }
+
+    data_[byteShift] = data_[0] << bitShift;
+    fill(begin(data_), begin(data_)+byteShift, 0);
+    shrink();
+
+    return *this;
+}
+
 /*
-bits& bits::operator<<=(size_t rhs);
 bits& bits::operator>>=(size_t rhs);
 bits& bits::operator<<(size_t rhs) const;
 bits& bits::operator>>(size_t rhs) const;
@@ -297,9 +347,6 @@ bits::reference::reference(byte& uc, int bit)
 template <typename Ty>
 inline void bits::addValue(vector<byte>& data, Ty rhs)
 {
-    if (rhs < 0) {
-        rhs = ~(-rhs);
-    }
     auto size = sizeof rhs;
     auto b = static_cast<byte*>(static_cast<void*>(&rhs));
     auto e = b + size;
@@ -334,8 +381,25 @@ inline vector<bits::byte> bits::initVector(std::initializer_list<uint_least32_t>
 inline void bits::grow(size_t size)
 {
     size_t oldSize = data_.size();
-    for (; oldSize < size; ++oldSize) {
-        data_.push_back(is_negative_ ? -1 : 0);
+    if (oldSize < size) {
+        data_.insert(end(data_), size-oldSize, is_negative_ ? -1 : 0);
+    }
+}
+
+inline void bits::shrink()
+{
+    byte sign = is_negative_ ? -1 : 0;
+    while (!data_.empty()) {
+        if (data_.back() != sign) {
+            break;
+        }
+        data_.pop_back();
+    }
+    if (data_.empty()) {
+        data_.push_back(sign);
+    }
+    if (is_negative_ && (data_.back() >> (CHAR_BIT-1)) != sign >> (CHAR_BIT-1)) {
+        data_.push_back(sign);
     }
 }
 

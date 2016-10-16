@@ -148,6 +148,8 @@ private:
     void grow(size_t size);
     reference make_existing_reference(size_t pos);
 
+    void shrink();
+
 private:
     bool is_negative_ = false;
     vector<byte> data_;

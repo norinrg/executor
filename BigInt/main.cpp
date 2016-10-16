@@ -45,13 +45,13 @@ void bit_testConstructors()
     assert(b1.to_string() == "00000000");
 
     bits b2(1);
-    assert(b2.to_string() == "00000000000000000000000000000001");
+    assert(b2.to_string() == "00000001");
 
     bits b3(-1);
-    assert(b3.to_string() == "11111111111111111111111111111110");
+    assert(b3.to_string() == "11111111");
 
     bits b4{1,  10,  1,  10};
-    assert(b4.to_string() ==    "00000000000000000000000000000001"
+    assert(b4.to_string() ==    "00000001"
                                 "00000000000000000000000000001010"
                                 "00000000000000000000000000000001"
                                 "00000000000000000000000000001010");
@@ -61,11 +61,12 @@ void bit_testConstructors()
     assert(b5.to_string() == "00000000");
 
     bits b6(std::move(b4));
-    assert(b6.to_string() ==    "00000000000000000000000000000001"
+    assert(b6.to_string() ==    "00000001"
                                 "00000000000000000000000000001010"
                                 "00000000000000000000000000000001"
                                 "00000000000000000000000000001010");
-    assert(b4.to_string() == "");
+    // nothing to assert for b4
+    // assert(b4.to_string() == "00000000");
 }
 
 void bit_testAssignment()
@@ -73,6 +74,7 @@ void bit_testAssignment()
     bits b1;
     bits b2;
     b1[9] = true;
+
     b2 = b1;
 
     assert(b1.to_string() ==    "00000010"
@@ -81,29 +83,27 @@ void bit_testAssignment()
 
     bits b3 = -1;
     b3[9].flip();
-    assert(b3.to_string() ==    "11111111"
-                                "11111111"
-                                "11111101"
-                                "11111110");
+    assert(b3.to_string() ==    "11111101"
+                                "11111111");
     b3[33].flip();
     assert(b3.to_string() ==    "11111101"
                                 "11111111"
                                 "11111111"
                                 "11111101"
-                                "11111110");
+                                "11111111");
 
     b1 = 1024;
-    assert(b1.to_ulong() == 1024UL);
+    assert(b1.to_ullong() == 1024UL);
 }
 
 void bit_testConversion()
 {
     bits b;
-    assert(b.to_ulong() == 0UL);
+    assert(b.to_ullong() == 0UL);
 
     b = bits{1024, 10, 22, 44};
     try {
-        auto ul = b.to_ulong();
+        auto ul = b.to_ullong();
         assert(false);
     }
     catch (std::range_error&) {
@@ -112,15 +112,80 @@ void bit_testConversion()
     assert(b.to_ullong() == 0x000004000000000aULL);
 }
 
+template <typename IntType>
+void assertLeftShift(const bits& b,  IntType i, size_t shift)
+{
+    std::string result;
+    bool sign = i < 0;
+    if (sign) {
+        i = -i;
+    }
+    bool turn = false;
+    while (i != 0) {
+        if (i % 2 == 1) {
+            char c = '1';
+            if (sign && turn) {
+                c = '0';
+            }
+            turn = true;
+            result = c + result;
+        } else {
+            char c = '0';
+            if (sign && turn) {
+                c = '1';
+            }
+            result = c + result;
+        }
+        i = i / 2;
+    }
+    result +=  std::string(shift, '0');
+    while ((result.size() % CHAR_BIT) != 0) {
+        result = (sign ? '1' : '0') + result;
+    }
+    std::string s = b.to_string();
+    assert(s == result);
+}
+
+void bit_testShiftOperators()
+{
+    for (int shift = 0; shift != 1240; ++shift) {
+        bits b1 = char(1);
+        b1 <<= shift;
+        assertLeftShift(b1, 1u, shift);
+    }
+
+    for (int shift = 0; shift != 2000; ++shift) {
+        auto val = 0x04030201U;
+        bits b1 = val;
+        b1 <<= shift;
+        assertLeftShift(b1, val, shift);
+    }
+
+    for (int shift = 8; shift != 1240; ++shift) {
+        bits b1 = char(-1);
+        b1 <<= shift;
+        assertLeftShift(b1, -1, shift);
+    }
+
+    for (int shift = 0; shift != 2000; ++shift) {
+        auto val = 0x04030201U;
+        bits b1 = val;
+        b1 <<= shift;
+        assertLeftShift(b1, val, shift);
+    }
+}
+
 void bit_testOperators()
 {
     bits b1 = 0xffffu;
     bits b2 = 0xff00u;
     b1 &=  b2;
-    assert(b1.to_ulong() == 0xff00u);
+    assert(b1.to_ullong() == 0xff00u);
 
     bits b3 = ~b1;
-    assert(b3.to_ulong() == 0xffff00ffu);
+    assert(b3.to_ullong() == 0xffu);
+
+    bit_testShiftOperators();
 }
 
 void testBits()
@@ -160,6 +225,6 @@ void testBits()
 
 int main(int argc, char **argv)
 {
-    //testAdd();
+    // testAdd();
     testBits();
 }
