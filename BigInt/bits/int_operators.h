@@ -98,6 +98,10 @@ namespace std { namespace experimental { namespace seminumeric {
     bits operator|(const bits& lhs, const bits& rhs);
     bits operator^(const bits& lhs, const bits& rhs);
 
+    bits operator<<(const bits& lhs, size_t rhs);
+    bits operator>>(const bits& lhs, size_t rhs);
+
+
     // I/O operations
     template <class CharT, class Traits>
         std::basic_ostream<CharT, Traits>& operator<<(
