@@ -34,7 +34,6 @@ namespace std { namespace experimental { namespace seminumeric {
 
 class bits {
 public:
-
     class reference;
 
     // constructors
@@ -127,7 +126,7 @@ public:
     private:
         friend class bits;
 
-        reference(unsigned char& uc,  int bit);
+        reference(unsigned char& uc, int bit);
 
     private:
         unsigned char& uc;
@@ -137,22 +136,27 @@ public:
 //  new
 private:
     using byte = unsigned char;
+    using Data = vector<byte>;
 
     template <typename Ty>
-    static void addValue(vector<byte>& data, Ty rhs);
+    static void addValue(Data& data, Ty rhs);
 
     template <typename Ty>
-    static vector<byte> initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = 0);
-    static vector<byte> initVector(std::initializer_list<uint_least32_t> list);
+    static Data initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = 0);
+    static Data initVector(std::initializer_list<uint_least32_t> list);
 
-    void grow(size_t size);
-    reference make_existing_reference(size_t pos);
+    static void grow(Data& data, size_t size);
+    static reference make_existing_reference(Data& data, size_t pos);
+
+    template <template<typename> class Op>
+    bits& operate(const bits& rhs, Op op);
 
     void shrink();
+    byte highByte() const;
 
 private:
-    bool is_negative_ = false;
-    vector<byte> data_;
+    bool complement_ = false;
+    Data data_;
 };
 
 }}}

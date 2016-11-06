@@ -41,30 +41,35 @@ inline bits::bits() noexcept
 
 template <class Ty>
 inline bits::bits(Ty rhs) noexcept
-    : is_negative_(rhs < 0)
+    : complement_(rhs < 0)
     , data_(initVector(rhs))
 {
     shrink();
 }
 
 bits::bits(std::initializer_list<uint_least32_t> list)
-    : is_negative_(false)
+    : complement_(false)
     , data_(initVector(move(list)))
 {
     shrink();
 }
 
-/*
 template <class CharT, class Traits, class Alloc>
-explicit bits::bits(const basic_string<CharT, Traits, Alloc>& str,
-    typename basic_string<CharT, Traits, Alloc>::size_t pos = 0,
-    typename basic_string<CharT, Traits, Alloc>::size_t count = std::basic_string<CharT>::npos,
-    CharT zero = CharT('0'),
-    CharT one = CharT('1'))
+bits::bits(const basic_string<CharT, Traits, Alloc>& str,
+    typename basic_string<CharT, Traits, Alloc>::size_t pos,
+    typename basic_string<CharT, Traits, Alloc>::size_t count,
+    CharT zero,
+    CharT one)
+    : complement_(false)
 {
+    if (count == std::basic_string<CharT>::npos) {
+        count = str.size() - pos;
+    }
+    data_ = makeVector(&*str.begin()+pos, count, zero, one);
     shrink();
 }
 
+/*
 template <class CharT>
 explicit bits::bits(const CharT *ptr,
     typename basic_string<CharT>::size_t count = std::basic_string<CharT>::npos,
@@ -76,12 +81,12 @@ explicit bits::bits(integer&& val);
 */
 
 bits::bits(const bits& rhs)
-    : is_negative_(rhs.is_negative_)
+    : complement_(rhs.complement_)
     , data_(rhs.data_)
 {}
 
 bits::bits(bits&& rhs) noexcept
-    : is_negative_(rhs.is_negative_)
+    : complement_(rhs.complement_)
     , data_(move(rhs.data_))
 {}
 
@@ -89,7 +94,7 @@ bits::bits(bits&& rhs) noexcept
 template <class Ty>
 bits& bits::operator=(Ty rhs) // integral types only
 {
-    is_negative_ = rhs < 0;
+    complement_ = rhs < 0;
     data_ = initVector(rhs);
 
     shrink();
@@ -117,7 +122,7 @@ bits& bits::operator=(bits&& rhs)
 void bits::swap(bits& rhs) noexcept
 {
     data_.swap(rhs.data_);
-    std::swap(is_negative_, rhs.is_negative_);
+    std::swap(complement_, rhs.complement_);
 }
 
 // conversions
@@ -170,7 +175,7 @@ std::basic_string<CharT, Traits, Alloc> bits::to_string(CharT zero, CharT one) c
     }
 
     if (data_.empty()) {
-        result = std::string(CHAR_BIT, is_negative_ ? one : zero);
+        result = std::string(CHAR_BIT, complement_ ? one : zero);
     }
 
     return result;
@@ -179,20 +184,12 @@ std::basic_string<CharT, Traits, Alloc> bits::to_string(CharT zero, CharT one) c
 // logical operations
 bits& bits::operator&=(const bits& rhs)
 {
-    grow(rhs.data_.size());
-    transform(begin(data_), end(data_), begin(rhs.data_), begin(data_),
-        [](auto b1, auto b2) {
-            return b1 & b2;
-        }
-    );
-    shrink();
-
-    return *this;
+    return operate(rhs, bit_and<byte>);
 }
 
 bits& bits::operator|=(const bits& rhs)
 {
-    grow(rhs.data_.size());
+    grow(rhs.data_, rhs.data_.size());
     transform(begin(data_), end(data_), begin(rhs.data_), begin(data_),
         [](auto b1, auto b2) {
             return b1 | b2;
@@ -205,7 +202,7 @@ bits& bits::operator|=(const bits& rhs)
 
 bits& bits::operator^=(const bits& rhs)
 {
-    grow(rhs.data_.size());
+    grow(rhs.data_, rhs.data_.size());
     transform(begin(data_), end(data_), begin(rhs.data_), begin(data_),
         [](auto b1, auto b2) {
             return b1 ^ b2;
@@ -235,7 +232,7 @@ bits& bits::operator<<=(size_t rhs)
     auto bitShift  = rhs%CHAR_BIT;
     auto growSize  = byteShift;
 
-    grow(max(data_.size()+growSize, size_t(2)));
+    grow(rhs.data_, max(data_.size()+growSize, size_t(2)));
 
     auto b1Origin = rbegin(data_)+byteShift;
     auto e1Origin = rend(data_);
@@ -263,8 +260,11 @@ bits& bits::operator<<=(size_t rhs)
     return *this;
 }
 
+
 /*
-bits& bits::operator>>=(size_t rhs);
+ * bits& bits::operator>>=(size_t rhs)
+{
+}
 bits& bits::operator<<(size_t rhs) const;
 bits& bits::operator>>(size_t rhs) const;
 
@@ -278,7 +278,7 @@ bits& bits::flip() noexcept;
 
 bits& bits::flip(size_t pos)
 {
-    reference ref = make_existing_reference(pos);
+    reference ref = make_existing_reference(rhs.data_, pos);
     ref.flip();
     return *this;
 }
@@ -288,7 +288,7 @@ bits& bits::flip(size_t pos)
 
 bits::reference bits::operator[](size_t pos)
 {
-    return make_existing_reference(pos);
+    return make_existing_reference(rhs.data_, pos);
 }
 
 /*
@@ -345,7 +345,7 @@ bits::reference::reference(byte& uc, int bit)
 {}
 
 template <typename Ty>
-inline void bits::addValue(vector<byte>& data, Ty rhs)
+inline void bits::addValue(Data& data, Ty rhs)
 {
     auto size = sizeof rhs;
     auto b = static_cast<byte*>(static_cast<void*>(&rhs));
@@ -355,10 +355,23 @@ inline void bits::addValue(vector<byte>& data, Ty rhs)
     copy(b, e, back_inserter(data));
 }
 
-template <typename Ty>
-inline vector<bits::byte> bits::initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type*)
+template <typename CharT>
+inline bits::Data bits::makeVector(const CharT* str, size_t count, CharT zero, CharT one)
 {
-    vector<byte> result;
+
+    for (size_t i = 0; i != count; ++i, ++str) {
+        reference ref(make_existing_reference(i));
+        if (*str != zero && *str != one) {
+            // throw?
+        }
+        ref = *str == one);
+    }
+}
+
+template <typename Ty>
+inline bits::Data bits::initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type*)
+{
+    Data result;
 
     result.reserve(sizeof rhs);
     addValue(result, rhs);
@@ -366,9 +379,9 @@ inline vector<bits::byte> bits::initVector(Ty rhs, typename enable_if<is_integra
     return move(result);
 }
 
-inline vector<bits::byte> bits::initVector(std::initializer_list<uint_least32_t> list)
+inline bits::Data bits::initVector(std::initializer_list<uint_least32_t> list)
 {
-    vector<byte> result;
+    bits::data result;
 
     result.reserve(list.size() * sizeof(uint_least32_t));
     for_each(rbegin(list), rend(list), [&result](auto val) {
@@ -382,13 +395,42 @@ inline void bits::grow(size_t size)
 {
     size_t oldSize = data_.size();
     if (oldSize < size) {
-        data_.insert(end(data_), size-oldSize, is_negative_ ? -1 : 0);
+        data_.insert(end(data_), size-oldSize, complement_ ? -1 : 0);
     }
+}
+
+inline bits::reference bits::make_existing_reference(size_t pos)
+{
+    auto byteNr = pos / CHAR_BIT;
+    grow(byteNr+1);
+    return reference(data_[byteNr], pos % CHAR_BIT);
+}
+
+template <template Op<typename>>
+inline bits& bits::operate(const bits& rhs, Op op)
+{
+    grow(data_, rhs.data_.size());
+    transform(begin(data_), begin(data_)+data_.size(), begin(rhs.data_), begin(data_),
+              [op](auto b1, auto b2) {
+                  return op(b1, b2);
+              }
+    );
+
+    byte highByte = rhs.highByte();
+    transform(begin(data_)+data_.size(), end(rhs.data_), begin(data_)+data_.size(),
+              [op, highByte](auto b) {
+                  return op(b, highByte);
+              }
+    );
+
+    shrink();
+
+    return *this;
 }
 
 inline void bits::shrink()
 {
-    byte sign = is_negative_ ? -1 : 0;
+    byte sign = complement_ ? -1 : 0;
     while (!data_.empty()) {
         if (data_.back() != sign) {
             break;
@@ -398,16 +440,14 @@ inline void bits::shrink()
     if (data_.empty()) {
         data_.push_back(sign);
     }
-    if (is_negative_ && (data_.back() >> (CHAR_BIT-1)) != sign >> (CHAR_BIT-1)) {
+    if (complement_ && (data_.back() >> (CHAR_BIT-1)) != sign >> (CHAR_BIT-1)) {
         data_.push_back(sign);
     }
 }
 
-inline bits::reference bits::make_existing_reference(size_t pos)
+inline bits::byte bits::highByte() const
 {
-    auto byteNr = pos / CHAR_BIT;
-    grow(byteNr+1);
-    return reference(data_[byteNr], pos % CHAR_BIT);
+    return complement_ ? -1 : 0;
 }
 
 }}}
