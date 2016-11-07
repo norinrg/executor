@@ -40,19 +40,19 @@ public:
     bits() noexcept;
 
     template <class Ty>
-    bits(Ty rhs) noexcept;                            // integral types only
+    bits(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = nullptr) noexcept;                            // integral types only
 
     bits(std::initializer_list<uint_least32_t> list);
 
     template <class CharT, class Traits, class Alloc>
     explicit bits(const basic_string<CharT, Traits, Alloc>& str,
-        typename basic_string<CharT, Traits, Alloc>::size_t pos = 0,
-        typename basic_string<CharT, Traits, Alloc>::size_t count = std::basic_string<CharT>::npos,
+        typename basic_string<CharT, Traits, Alloc>::size_type pos = 0,
+        typename basic_string<CharT, Traits, Alloc>::size_type count = std::basic_string<CharT>::npos,
         CharT zero = CharT('0'),
         CharT one = CharT('1'));
     template <class CharT>
-    explicit bits(const CharT *ptr,
-        typename basic_string<CharT>::size_t count = std::basic_string<CharT>::npos,
+    explicit bits(const CharT* ptr,
+        typename basic_string<CharT>::size_type count = std::basic_string<CharT>::npos,
         CharT zero = CharT('0'),
         CharT one = CharT('1'));
 
@@ -136,7 +136,13 @@ public:
 //  new
 private:
     using byte = unsigned char;
-    using Data = vector<byte>;
+    struct Data {
+        bool complement;
+        vector<byte> data;
+
+        void shrink();
+        byte highByte() const;
+    };
 
     template <typename Ty>
     static void addValue(Data& data, Ty rhs);
@@ -145,17 +151,16 @@ private:
     static Data initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = 0);
     static Data initVector(std::initializer_list<uint_least32_t> list);
 
+    template <typename CharT>
+    static Data makeVector(const CharT* str, size_t count, CharT zero, CharT one);
+
     static void grow(Data& data, size_t size);
     static reference make_existing_reference(Data& data, size_t pos);
 
-    template <template<typename> class Op>
+    template <class Op>
     bits& operate(const bits& rhs, Op op);
 
-    void shrink();
-    byte highByte() const;
-
 private:
-    bool complement_ = false;
     Data data_;
 };
 

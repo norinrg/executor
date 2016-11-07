@@ -39,6 +39,15 @@ void flipBit(bits& b, int bit)
     std::cerr << "b:" << b.to_string() << "\n";
 }
 
+void bit_testStringConstructors()
+{
+    bits b1("0111111111111111");
+    assert(b1.to_string() == "0111111111111111");
+
+    bits b2("");
+    assert(b2.to_ulong() == 0ul);
+}
+
 void bit_testConstructors()
 {
     bits b1;
@@ -67,6 +76,8 @@ void bit_testConstructors()
                                 "00000000000000000000000000001010");
     // nothing to assert for b4
     // assert(b4.to_string() == "00000000");
+
+    bit_testStringConstructors();
 }
 
 void bit_testAssignment()
@@ -184,6 +195,12 @@ void bit_testOperators()
 
     bits b3 = ~b1;
     assert(b3.to_ullong() == 0xffu);
+
+    b1 |= b3;
+    assert(b1.to_ullong() == 0xffffu);
+
+    b1 ^= b3;
+    assert(b1.to_ullong() == 0xff00u);
 
     bit_testShiftOperators();
 }
