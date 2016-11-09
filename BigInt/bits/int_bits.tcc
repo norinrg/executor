@@ -59,7 +59,7 @@ bits::bits(const basic_string<CharT, Traits, Alloc>& str,
     typename basic_string<CharT, Traits, Alloc>::size_type count,
     CharT zero,
     CharT one)
-    : data_{false, 0}
+    : data_{false}
 {
     if (count == std::basic_string<CharT>::npos) {
         count = str.size() - pos;

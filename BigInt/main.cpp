@@ -39,13 +39,27 @@ void flipBit(bits& b, int bit)
     std::cerr << "b:" << b.to_string() << "\n";
 }
 
+std::string make_bit_pattern_string(int size)
+{
+    std::string result;
+    for (; size != 0; --size) {
+        result += "10";
+    }
+
+    while (result.size() == 0 || result.size() %  CHAR_BIT != 0) {
+        result = '0' + result;
+    }
+    return result;
+}
+
 void bit_testStringConstructors()
 {
-    bits b1("0111111111111111");
-    assert(b1.to_string() == "0111111111111111");
-
-    bits b2("");
-    assert(b2.to_ulong() == 0ul);
+    for (int i = 0; i != 2000; ++i) {
+        std::string s = make_bit_pattern_string(i);
+        bits b(s);
+        std::string s1 = b.to_string();
+        assert(s1 == s);
+    }
 }
 
 void bit_testConstructors()
