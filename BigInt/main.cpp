@@ -1,7 +1,11 @@
 #include "seminumeric"
 
+#define CATCH_CONFIG_MAIN
+#include <catch.hpp>
+
 #include <cassert>
 #include <iostream>
+
 
 using namespace std::experimental::seminumeric;
 
@@ -39,29 +43,6 @@ void flipBit(bits& b, int bit)
     std::cerr << "b:" << b.to_string() << "\n";
 }
 
-std::string make_bit_pattern_string(int size)
-{
-    std::string result;
-    for (; size != 0; --size) {
-        result += "10";
-    }
-
-    while (result.size() == 0 || result.size() %  CHAR_BIT != 0) {
-        result = '0' + result;
-    }
-    return result;
-}
-
-void bit_testStringConstructors()
-{
-    for (int i = 0; i != 2000; ++i) {
-        std::string s = make_bit_pattern_string(i);
-        bits b(s);
-        std::string s1 = b.to_string();
-        assert(s1 == s);
-    }
-}
-
 void bit_testConstructors()
 {
     bits b1;
@@ -90,8 +71,6 @@ void bit_testConstructors()
                                 "00000000000000000000000000001010");
     // nothing to assert for b4
     // assert(b4.to_string() == "00000000");
-
-    bit_testStringConstructors();
 }
 
 void bit_testAssignment()
@@ -254,8 +233,80 @@ void testBits()
     std::cerr << "b1:" << b1.to_string() << "\n";
 }
 
+namespace {
+
+template <class Ty>
+char bitChar(Ty rhs, unsigned bit, typename std::enable_if<std::is_integral<Ty>::value>::type* = nullptr) noexcept
+{
+    if ((rhs & (1 << bit)) == (1 << bit)) {
+        return '1';
+    }
+    return '0';
+}
+
+template <class Ty>
+std::string to_bitstring(Ty rhs, typename std::enable_if<std::is_integral<Ty>::value>::type* = nullptr) noexcept                            // integral types only
+{
+    std::string result;
+    for (int i = 0; i != (sizeof(Ty) * CHAR_BIT); ++i) {
+        result = bitChar(rhs, i) + result;
+    }
+    char bit = '0';
+    if (rhs < 0) {
+        bit= '1';
+    }
+    while (!result.empty() && result[0] == bit) {
+        result.erase(result.begin());
+    }
+
+    while (result.size() == 0 || result.size() % CHAR_BIT != 0) {
+        result = bit + result;
+    }
+
+    return std::move(result);
+}
+
+std::string make_bit_pattern_string(int size)
+{
+    std::string result;
+    for (; size != 0; --size) {
+        result += "10";
+    }
+
+    while (result.size() == 0 || result.size() %  CHAR_BIT != 0) {
+        result = '0' + result;
+    }
+    return result;
+}
+
+void test_bitstring(std::string s)
+{
+    REQUIRE(bits(s).to_string() == s);
+    REQUIRE(bits(s).to_string().c_str() == s);
+}
+
+}
+
+TEST_CASE("Constructors are tested", "[bits]")
+{
+    REQUIRE(bits(     ).to_string() == to_bitstring(    0));
+    REQUIRE(bits(    0).to_string() == to_bitstring(    0));
+    REQUIRE(bits(  100).to_string() == to_bitstring(  100));
+    REQUIRE(bits(-   3).to_string() == to_bitstring(-   3));
+    REQUIRE(bits(-1024).to_string() == to_bitstring(-1024));
+
+    REQUIRE(bits({0xff, 0xff, 0xff}).to_string() == "111111110000000000000000000000001111111100000000000000000000000011111111");
+
+    test_bitstring("111111110000000000000000000000001111111100000000000000000000000011111111");
+    for (int i = 0; i != 2000; ++i) {
+        test_bitstring(make_bit_pattern_string(i));
+    }
+}
+
+/*
 int main(int argc, char **argv)
 {
     // testAdd();
     testBits();
 }
+*/
