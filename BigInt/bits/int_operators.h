@@ -81,11 +81,11 @@ namespace std { namespace experimental { namespace seminumeric {
 
     // I/O operations
     template <class CharT, class Traits>
-        std::basic_ostream<CharT, Traits>& operator<<(
-            std::basic_ostream<CharT, Traits>& str, const integer& val);
+    std::basic_ostream<CharT, Traits>& operator<<(
+        std::basic_ostream<CharT, Traits>& str, const integer& val);
     template <class CharT, class Traits>
-        std::basic_istream<CharT, Traits>& operator>>(
-            std::basic_istream<CharT, Traits>& str, integer& val);
+    std::basic_istream<CharT, Traits>& operator>>(
+        std::basic_istream<CharT, Traits>& str, integer& val);
 
 /* class bits */
 
@@ -104,11 +104,11 @@ namespace std { namespace experimental { namespace seminumeric {
 
     // I/O operations
     template <class CharT, class Traits>
-        std::basic_ostream<CharT, Traits>& operator<<(
-            std::basic_ostream<CharT, Traits>& str, const bits& val);
+    std::basic_ostream<CharT, Traits>& operator<<(
+        std::basic_ostream<CharT, Traits>& str, const bits& val);
     template <class CharT, class Traits>
-        std::basic_istream<CharT, Traits>& operator>>(
-            std::basic_istream<CharT, Traits>& str, bits& val);
+    std::basic_istream<CharT, Traits>& operator>>(
+        std::basic_istream<CharT, Traits>& str, bits& val);
 
 }}
 
@@ -120,5 +120,7 @@ template <> class hash<experimental::seminumeric::integer>;
 template <> class hash<experimental::seminumeric::bits>;
 
 }
+
+#include "int_operators.tcc"
 
 #endif

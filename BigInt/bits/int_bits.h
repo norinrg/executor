@@ -30,6 +30,9 @@
 #ifndef INT_BITS_H
 #define INT_BITS_H
 
+#include <string>
+#include <vector>
+
 namespace std { namespace experimental { namespace seminumeric {
 
 class bits {
@@ -74,8 +77,8 @@ public:
     // conversions
     unsigned long to_ulong() const;
     unsigned long long to_ullong() const;
-    template <class CharT = char, class Traits = std::char_traits<CharT>, class Alloc = std::allocator<CharT> >
-        std::basic_string<CharT, Traits, Alloc> to_string(CharT zero = CharT('0'), CharT one = CharT('1')) const;
+    template <class CharT = char, class Traits = std::char_traits<CharT>, class Alloc = std::allocator<CharT>>
+    std::basic_string<CharT, Traits, Alloc> to_string(CharT zero = CharT('0'), CharT one = CharT('1')) const;
 
     // logical operations
     bits& operator&=(const bits& rhs);
@@ -142,6 +145,7 @@ private:
 
         void shrink();
         byte highByte() const;
+        bool operator==(const Data& rhs) const;
     };
 
     template <typename Ty>

@@ -31,8 +31,9 @@
 #define SEMINUMERIC_H
 
 #include "bits/int_operators.h"
+
+#include "bits/int_bits.h"
 #include "bits/int_integer.h"
 #include "bits/int_integer_data_proxy.h"
-#include "bits/int_bits.h"
 
 #endif

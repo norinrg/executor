@@ -285,11 +285,19 @@ bool bits::any() const noexcept;
 bool bits::none() const noexcept;
 size_t bits::count() const noexcept;
 size_t bits::count_not_set() const noexcept;
-
+*/
 // comparison
-bool bits::operator==(const bits& rhs) const noexcept;
-bool bits::operator!=(const bits& rhs) const noexcept;
+bool bits::operator==(const bits& rhs) const noexcept
+{
+    return data_ == rhs.data_;
+}
 
+bool bits::operator!=(const bits& rhs) const noexcept
+{
+    return !operator==(rhs);
+}
+
+/*
 // capacity
 size_t bits::size() const noexcept;
 size_t bits::capacity() const noexcept;
@@ -440,6 +448,12 @@ inline void bits::Data::shrink()
 inline bits::byte bits::Data::highByte() const
 {
     return complement ? -1 : 0;
+}
+
+inline bool bits::Data::operator==(const Data& rhs) const
+{
+    return complement == rhs.complement
+        && data == rhs.data;
 }
 
 }}}

@@ -287,20 +287,79 @@ void test_bitstring(std::string s)
 
 }
 
-TEST_CASE("Constructors are tested", "[bits]")
+TEST_CASE("Test Bits-Constructors", "[bits] [constructor]")
 {
+    /// default constructor
     REQUIRE(bits(     ).to_string() == to_bitstring(    0));
+
+    // some in type constructors
     REQUIRE(bits(    0).to_string() == to_bitstring(    0));
     REQUIRE(bits(  100).to_string() == to_bitstring(  100));
     REQUIRE(bits(-   3).to_string() == to_bitstring(-   3));
     REQUIRE(bits(-1024).to_string() == to_bitstring(-1024));
 
+    // initializer list
     REQUIRE(bits({0xff, 0xff, 0xff}).to_string() == "111111110000000000000000000000001111111100000000000000000000000011111111");
 
+    // bitstrings
     test_bitstring("111111110000000000000000000000001111111100000000000000000000000011111111");
     for (int i = 0; i != 2000; ++i) {
         test_bitstring(make_bit_pattern_string(i));
     }
+
+    // copy constructor
+    bits b1(make_bit_pattern_string(5000));
+    bits b2(b1);
+    REQUIRE(b1 == b2);
+
+    // move constructor
+    bits b3(std::move(b2));
+    REQUIRE(b1 == b3);
+}
+
+TEST_CASE("Test Bits Assignment", "[bits] [assignment]")
+{
+    bits b1;
+
+    b1 =    0; REQUIRE(b1 ==    0);
+    b1 =  100; REQUIRE(b1 ==  100);
+    b1 =   -3; REQUIRE(b1 ==   -3);
+    b1 = 1024; REQUIRE(b1 == 1024);
+
+    std::string s(make_bit_pattern_string(5000));
+
+    bits b2(s);
+    b1 = b2;            REQUIRE(b1 == bits(s));
+    b2 = std::move(b2); REQUIRE(b1 == bits(s));
+}
+
+TEST_CASE("Swapping Bits swaps them", "[bits] [swap]")
+{
+    bits b1a(make_bit_pattern_string(5000));
+    bits b2a(make_bit_pattern_string(6000));
+    bits b1b(b1a);
+    bits b2b(b2a);
+
+    REQUIRE(b1a != b2a);
+    REQUIRE(b2b != b1b);
+    REQUIRE(b1a == b1b);
+    REQUIRE(b2a == b2b);
+
+    swap(b1a, b2a);
+    REQUIRE(b1a == b2b);
+    REQUIRE(b2a == b1b);
+}
+
+TEST_CASE("Converting to ulong", "[bits] [convert]")
+{
+    REQUIRE(bits(     ).to_ulong() ==     0UL);
+    REQUIRE(bits(    0).to_ulong() ==     0UL);
+    REQUIRE(bits(  100).to_ulong() ==   100UL);
+    REQUIRE(bits(-   3).to_ulong() ==    -3UL);
+    REQUIRE(bits(-1024).to_ulong() == -1024UL);
+
+    // initializer list
+    REQUIRE(bits({0x12aabbff}).to_ulong() == 0x12aabbffUL);
 }
 
 /*
