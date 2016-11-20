@@ -355,17 +355,61 @@ TEST_CASE("Converting to ulong", "[bits] [convert]")
     REQUIRE(bits(     ).to_ulong() ==     0UL);
     REQUIRE(bits(    0).to_ulong() ==     0UL);
     REQUIRE(bits(  100).to_ulong() ==   100UL);
-    REQUIRE(bits(-   3).to_ulong() ==    -3UL);
-    REQUIRE(bits(-1024).to_ulong() == -1024UL);
+    REQUIRE(bits(-   3).to_ulong() == static_cast<unsigned char>(-3));
+    REQUIRE(bits(-1024).to_ulong() == static_cast<unsigned short>(-1024));
 
     // initializer list
     REQUIRE(bits({0x12aabbff}).to_ulong() == 0x12aabbffUL);
+    REQUIRE_THROWS(bits({0x12aabbff, 0x12aabbff, 0x12aabbff, 0x12aabbff}).to_ulong());
 }
 
-/*
-int main(int argc, char **argv)
+TEST_CASE("Converting to ullong", "[bits] [convert]")
 {
-    // testAdd();
-    testBits();
+    REQUIRE(bits(     ).to_ullong() ==     0ULL);
+    REQUIRE(bits(    0).to_ullong() ==     0ULL);
+    REQUIRE(bits(  100).to_ullong() ==   100ULL);
+    REQUIRE(bits(-   3).to_ullong() == static_cast<unsigned char>(-3));
+    REQUIRE(bits(-1024).to_ulong() == static_cast<unsigned short>(-1024));
+
+    // initializer list
+    REQUIRE(bits({0x12aabbff}).to_ullong() == 0x12aabbffUL);
+    REQUIRE_THROWS(bits({0x12aabbff, 0x12aabbff, 0x12aabbff, 0x12aabbff}).to_ullong());
 }
-*/
+
+TEST_CASE("Converting to string", "[bits] [convert]")
+{
+    REQUIRE(bits(     ).to_string() == "00000000");
+    REQUIRE(bits(    0).to_string() == "00000000");
+    REQUIRE(bits(  100).to_string() == "01100100");
+    REQUIRE(bits(-   3).to_string() == "11111101");
+    REQUIRE(bits(-1024).to_string() == "1111110000000000");
+}
+
+TEST_CASE("Operator &=", "[bits] [operator]")
+{
+    bits b1("10101010");
+    REQUIRE((b1 &= b1) == b1);
+    REQUIRE((b1 &= bits("010101010101010101010101")) == 0);
+}
+
+TEST_CASE("Operator |=", "[bits] [operator]")
+{
+    bits b1("10101010");
+    REQUIRE((b1 |= b1) == b1);
+    REQUIRE((b1 |= bits("01010101")) == 0xff);
+}
+
+TEST_CASE("Operator ^=", "[bits] [operator]")
+{
+    bits b1("10101010");
+    REQUIRE((b1 ^= b1) == 0);
+
+    b1 = bits("10101010");
+    REQUIRE((b1 ^= bits("01010111")) == bits("11111101"));
+}
+
+TEST_CASE("Operator ~", "[bits] [operator]")
+{
+    bits b1("10101010");
+    REQUIRE(~b1 == bits("01010101"));
+}
