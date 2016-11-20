@@ -309,7 +309,7 @@ TEST_CASE("Test Bits-Constructors", "[bits] [constructor]")
 
     // copy constructor
     bits b1(make_bit_pattern_string(5000));
-    bits b2(b1);
+    bits b2( b1 );
     REQUIRE(b1 == b2);
 
     // move constructor
@@ -387,29 +387,121 @@ TEST_CASE("Converting to string", "[bits] [convert]")
 
 TEST_CASE("Operator &=", "[bits] [operator]")
 {
-    bits b1("10101010");
-    REQUIRE((b1 &= b1) == b1);
-    REQUIRE((b1 &= bits("010101010101010101010101")) == 0);
+    bits original ("10101010");
+    bits base     (original);
+    bits inverted ("01010101");
+    bits doubled  ("1010101010101010");
+    bits dInverted("0101010101010101");
+
+    SECTION("base &= base")
+    {
+        REQUIRE((base &= base) == original);
+    }
+    SECTION("base &= inverted")
+    {
+        REQUIRE((base &= inverted) == 0);
+    }
+    SECTION("base &= doubled")
+    {
+        REQUIRE((base &= doubled) == original);
+    }
+    SECTION("base &= dInverted")
+    {
+        REQUIRE((base &= dInverted) == 0);
+    }
 }
 
 TEST_CASE("Operator |=", "[bits] [operator]")
 {
-    bits b1("10101010");
-    REQUIRE((b1 |= b1) == b1);
-    REQUIRE((b1 |= bits("01010101")) == 0xff);
+    bits original ("10101010");
+    bits base     (original);
+    bits inverted ("01010101");
+    bits doubled  ("1010101010101010");
+    bits dInverted("0101010101010101");
+    bits all      ("11111111");
+    bits invertedPlusAll("0101010111111111");
+
+    SECTION("base |= base")
+    {
+        REQUIRE((base |= base) == original);
+    }
+    SECTION("base |= inverted")
+    {
+        REQUIRE((base |= inverted) == all);
+    }
+    SECTION("base |= doubled")
+    {
+        REQUIRE((base |= doubled) == doubled);
+    }
+    SECTION("base |= dInverted")
+    {
+        REQUIRE((base |= dInverted) == invertedPlusAll);
+    }
 }
 
 TEST_CASE("Operator ^=", "[bits] [operator]")
 {
-    bits b1("10101010");
-    REQUIRE((b1 ^= b1) == 0);
+    bits original ("10101010");
+    bits base     (original);
+    bits inverted ("01010101");
+    bits doubled  ("1010101010101010");
+    bits dInverted("0101010101010101");
+    bits all      ("11111111");
+    bits invertedPlusAll("0101010111111111");
+    bits originalPlusNull("1010101000000000");
 
-    b1 = bits("10101010");
-    REQUIRE((b1 ^= bits("01010111")) == bits("11111101"));
+    SECTION("base ^= base")
+    {
+        REQUIRE((base ^= base) == 0);
+    }
+    SECTION("base ^= inverted")
+    {
+        REQUIRE((base ^= inverted) == all);
+    }
+    SECTION("base ^= doubled")
+    {
+        REQUIRE((base ^= doubled) == originalPlusNull);
+    }
+    SECTION("base ^= dInverted")
+    {
+        REQUIRE((base ^= dInverted) == invertedPlusAll);
+    }
 }
 
 TEST_CASE("Operator ~", "[bits] [operator]")
 {
-    bits b1("10101010");
-    REQUIRE(~b1 == bits("01010101"));
+    bits base    ("10101010");
+    bits inverted("01010101");
+    bits all     ("11111111");
+
+    SECTION("~base")
+    {
+        REQUIRE(~base == inverted);
+    }
+    SECTION("~all")
+    {
+        REQUIRE(~all ==  0);
+    }
+}
+
+TEST_CASE("Operator <<=", "[bits] [operator] [shift]")
+{
+    bits b(1);
+
+    SECTION("Shifting by zero is a nop")
+    {
+        REQUIRE((b <<=  0) == 1);
+    }
+    SECTION("Shifting by 1 doubles")
+    {
+        REQUIRE((b <<= 1) == 2);
+    }
+    SECTION("Shifting by 10 adds 10 (binary) zeroes")
+    {
+        REQUIRE((b <<= 10) == bits("1" + std::string(10,  '0')));
+    }
+    SECTION("Shifting by 10000 adds 10000 (binary) zeroes")
+    {
+        REQUIRE((b <<= 10000) == bits("1" + std::string(10000,  '0')));
+    }
 }
