@@ -248,10 +248,12 @@ bits& bits::operator<<=(size_t rhs)
 }
 
 
-/*
 bits& bits::operator>>=(size_t rhs)
 {
+    return *this;
 }
+
+/*
 bits& bits::operator<<(size_t rhs) const;
 bits& bits::operator>>(size_t rhs) const;
 

@@ -484,24 +484,42 @@ TEST_CASE("Operator ~", "[bits] [operator]")
     }
 }
 
-TEST_CASE("Operator <<=", "[bits] [operator] [shift]")
+TEST_CASE("Operator <<= (left shift)", "[bits] [operator] [shift]")
 {
     bits b(1);
 
-    SECTION("Shifting by zero is a nop")
+    SECTION("Left-Shifting by zero is a nop")
     {
         REQUIRE((b <<=  0) == 1);
+        REQUIRE(b == 1);
     }
-    SECTION("Shifting by 1 doubles")
+    SECTION("Left-Shifting by 1 doubles")
     {
         REQUIRE((b <<= 1) == 2);
+        REQUIRE(b == 2);
     }
-    SECTION("Shifting by 10 adds 10 (binary) zeroes")
+    SECTION("Left-Shifting by 10 adds 10 (binary) zeroes")
     {
         REQUIRE((b <<= 10) == bits("1" + std::string(10,  '0')));
+        REQUIRE(b == bits("1" + std::string(10,  '0')));
     }
-    SECTION("Shifting by 10000 adds 10000 (binary) zeroes")
+    SECTION("Left-Shifting by 10000 adds 10000 (binary) zeroes")
     {
         REQUIRE((b <<= 10000) == bits("1" + std::string(10000,  '0')));
+        REQUIRE(b == bits("1" + std::string(10000,  '0')));
+    }
+}
+
+TEST_CASE("Operator >>= (right shift)", "[bits] [operator] [shift]")
+{
+    bits b(0x80);
+
+    SECTION("Right-Shifting by zero is a nop")
+    {
+        REQUIRE((b >>= 0) == 0x80);
+    }
+    SECTION("Right-Shifting by 1 halves")
+    {
+        REQUIRE((b >>= 1) == 0x40);
     }
 }
