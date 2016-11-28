@@ -250,6 +250,7 @@ bits& bits::operator<<=(size_t rhs)
 
 bits& bits::operator>>=(size_t rhs)
 {
+    data_ >>= rhs;
     return *this;
 }
 
@@ -457,5 +458,67 @@ inline bool bits::Data::operator==(const Data& rhs) const
     return complement == rhs.complement
         && data == rhs.data;
 }
+
+inline void bits::Data::operator>>=(size_t rhs)
+{
+    size_t bitShift = rhs % CHAR_BIT;
+    size_t byteShift = rhs / CHAR_BIT;
+
+    if (byteShift < data.size()) {
+        auto b1Origin = begin(data)+byteShift;
+        auto e1Origin = end(data)-1;
+
+        auto b2Origin = b1Origin+1;
+        auto bDest = begin(data);
+
+        transform(b1Origin, e1Origin, b2Origin, bDest,
+                [bitShift](auto b1, auto b2) {
+                    if (bitShift == 0) {
+                        return b1;
+                    }
+                    byte result = (b1 >> bitShift) | (b2 << (CHAR_BIT - bitShift));
+                    return result;
+                }
+        );
+        *(bDest+(e1Origin-b1Origin)) = (*e1Origin >> bitShift);
+        fill(end(data)-byteShift, end(data), highByte());
+    } else {
+        data = {highByte()};
+    }
+    shrink();
+}
+
+/*
+    auto byteShift = (rhs+CHAR_BIT-1)/CHAR_BIT;
+    auto bitShift  = rhs%CHAR_BIT;
+    auto growSize  = byteShift;
+
+    grow(data_, max(data_.data.size()+growSize, size_t(2)));
+
+    auto b1Origin = rbegin(data_.data)+byteShift;
+    auto e1Origin = rend(data_.data);
+
+    auto b2Origin = b1Origin-1;
+    auto bDest = rbegin(data_.data);
+
+    transform(b1Origin, e1Origin, b2Origin, bDest,
+        [bitShift](auto b1, auto b2) {
+            if (bitShift == 0) {
+                return b1;
+            }
+            byte result = (b1 >> ((CHAR_BIT - bitShift)%CHAR_BIT)) | (b2 << bitShift);
+            return result;
+        }
+    );
+    if (bitShift != 0) {
+        --byteShift;
+    }
+
+    data_.data[byteShift] = data_.data[0] << bitShift;
+    fill(begin(data_.data), begin(data_.data)+byteShift, 0);
+    data_.shrink();
+
+    return *this;
+*/
 
 }}}

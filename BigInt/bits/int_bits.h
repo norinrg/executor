@@ -145,7 +145,9 @@ private:
 
         void shrink();
         byte highByte() const;
+
         bool operator==(const Data& rhs) const;
+        void operator>>=(size_t rhs);
     };
 
     template <typename Ty>

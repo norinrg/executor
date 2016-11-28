@@ -512,14 +512,74 @@ TEST_CASE("Operator <<= (left shift)", "[bits] [operator] [shift]")
 
 TEST_CASE("Operator >>= (right shift)", "[bits] [operator] [shift]")
 {
-    bits b(0x80);
+    bits b(0xffffffff);
 
     SECTION("Right-Shifting by zero is a nop")
     {
-        REQUIRE((b >>= 0) == 0x80);
+        REQUIRE((b >>= 0) == b);
     }
-    SECTION("Right-Shifting by 1 halves")
+    SECTION("Right-Shifting 1 by 1 makes zero")
     {
-        REQUIRE((b >>= 1) == 0x40);
+        b = 1;
+        REQUIRE((b >>= 1) == 0);
+    }
+    SECTION("Right-Shifting by 1 makes -7f")
+    {
+        b = bits(static_cast<unsigned short>(0x4411));
+        REQUIRE((b >>= 1) == 0x2208);
+    }
+    SECTION("Right-Shifting by 1 makes -7f")
+    {
+        REQUIRE((b >>= 1) == 0x7fffffff);
+    }
+    SECTION("Right-Shifting by 2 makes -3f")
+    {
+        REQUIRE((b >>= 2) == 0x3fffffff);
+    }
+    SECTION("Right-Shifting by 3 makes -1f")
+    {
+        REQUIRE((b >>= 3) == 0x1fffffff);
+    }
+    SECTION("Right-Shifting by 4 makes -0f")
+    {
+        REQUIRE((b >>= 4) == 0x0fffffff);
+    }
+    SECTION("Right-Shifting by 5 makes -07")
+    {
+        REQUIRE((b >>= 5) == 0x07ffffff);
+    }
+    SECTION("Right-Shifting by 6 makes -03")
+    {
+        REQUIRE((b >>= 6) == 0x03ffffff);
+    }
+    SECTION("Right-Shifting by 7 makes -01")
+    {
+        REQUIRE((b >>= 7) == 0x01ffffff);
+    }
+    SECTION("Right-Shifting by 8 makes -00")
+    {
+        REQUIRE((b >>= 8) == 0x00ffffff);
+    }
+    SECTION("Right-Shifting by 9 makes -007")
+    {
+        REQUIRE((b >>= 9) == 0x007fffff);
+    }
+    SECTION("Right-Shifting by 10 shifts by 10")
+    {
+        b = bits{0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU};
+        REQUIRE((b >>= 10) == bits({0x003fffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU}));
+    }
+    SECTION("Right-Shifting by 10 shifts by 10")
+    {
+        b = bits{"11010101000111110100100011111100100101010100010111100010100100010011111100001010010010010010010111110001"};
+        REQUIRE((b >>= 34) == bits("00000000000000000000000000000000001101010100011111010010001111110010010101010001011110001010010001001111"));
+    }
+    SECTION("Right-Shifting by exactly available bits makes 0")
+    {
+        REQUIRE((b >>= 32) == 0);
+    }
+    SECTION("Right-Shifting by more than available bits makes 0")
+    {
+        REQUIRE((b >>= 33) == 0);
     }
 }
