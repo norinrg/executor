@@ -583,3 +583,10 @@ TEST_CASE("Operator >>= (right shift)", "[bits] [operator] [shift]")
         REQUIRE((b >>= 33) == 0);
     }
 }
+
+TEST_CASE("set", "[bits] [modifier] [set]")
+{
+    SECTION("Set sets all bits in 0")
+    {
+    }
+}

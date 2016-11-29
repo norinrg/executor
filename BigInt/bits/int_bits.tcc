@@ -61,6 +61,9 @@ bits::bits(const basic_string<CharT, Traits, Alloc>& str,
     CharT one)
     : data_{false}
 {
+    if (pos > str.size()) {
+        throw out_of_range("position out of range");
+    }
     if (count == std::basic_string<CharT>::npos) {
         count = str.size() - pos;
     }
@@ -74,8 +77,12 @@ bits::bits(const CharT* ptr,
     CharT zero,
     CharT one)
 {
+    if (!ptr) {
+        throw out_of_range("position out of range");
+    }
+    size_t len = strlen(ptr);
     if (count == std::basic_string<CharT>::npos) {
-        count = strlen(ptr);
+        count = len;
     }
     data_ = makeVector(ptr, count, zero, one);
     data_.shrink();
@@ -361,10 +368,10 @@ inline bits::Data bits::makeVector(const CharT* str, size_t count, CharT zero, C
         return move(result);
     }
     do {
-        reference ref(make_existing_reference(result, --count));
         if (*str != zero && *str != one) {
-            // throw?
+            throw invalid_argument("illegal character");
         }
+        reference ref(make_existing_reference(result, --count));
         ref = *str == one;
         ++str;
     } while (count != 0);

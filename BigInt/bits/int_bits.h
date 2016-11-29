@@ -88,8 +88,8 @@ public:
 
     bits& operator<<=(size_t rhs);
     bits& operator>>=(size_t rhs);
-    bits& operator<<(size_t rhs) const;
-    bits& operator>>(size_t rhs) const;
+    //bits& operator<<(size_t rhs) const;
+    //bits& operator>>(size_t rhs) const;
 
     // element access and modification
     bits& set() noexcept;
