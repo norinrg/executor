@@ -44,13 +44,11 @@ template <class Ty>
 inline bits::bits(Ty rhs, typename enable_if<is_integral<Ty>::value>::type*) noexcept
     : data_{initVector(rhs)}
 {
-    data_.shrink();
 }
 
 bits::bits(std::initializer_list<uint_least32_t> list)
     : data_{initVector(move(list))}
 {
-    data_.shrink();
 }
 
 template <class CharT, class Traits, class Alloc>
@@ -68,7 +66,6 @@ bits::bits(const basic_string<CharT, Traits, Alloc>& str,
         count = str.size() - pos;
     }
     data_ = makeVector(&*str.begin()+pos, count, zero, one);
-    data_.shrink();
 }
 
 template <class CharT>
@@ -85,7 +82,6 @@ bits::bits(const CharT* ptr,
         count = len;
     }
     data_ = makeVector(ptr, count, zero, one);
-    data_.shrink();
 }
 
 /*
@@ -106,8 +102,6 @@ template <class Ty>
 bits& bits::operator=(Ty rhs) // integral types only
 {
     data_ = initVector(rhs);
-
-    data_.shrink();
     return *this;
 }
 
@@ -210,14 +204,7 @@ bits& bits::operator^=(const bits& rhs)
 bits bits::operator~() const
 {
     bits result(*this);
-    transform(begin(result.data_.data), end(result.data_.data), begin(result.data_.data),
-        [](auto b1) {
-            return ~b1;
-        }
-    );
-    result.data_.shrink();
-
-    return result;
+    return move(result.flip());
 }
 
 bits& bits::operator<<=(size_t rhs)
@@ -249,8 +236,6 @@ bits& bits::operator<<=(size_t rhs)
 
     data_.data[byteShift] = data_.data[0] << bitShift;
     fill(begin(data_.data), begin(data_.data)+byteShift, 0);
-    data_.shrink();
-
     return *this;
 }
 
@@ -264,24 +249,55 @@ bits& bits::operator>>=(size_t rhs)
 /*
 bits& bits::operator<<(size_t rhs) const;
 bits& bits::operator>>(size_t rhs) const;
-
-// element access and modification
-bits& bits::set() noexcept;
-bits& bits::set(size_t pos, bool val = true);
-bits& bits::reset() noexcept;
-bits& bits::reset(size_t pos);
-bits& bits::flip() noexcept;
 */
-
-bits& bits::flip(size_t pos)
+// element access and modification
+bits& bits::set() noexcept
 {
-    reference ref = make_existing_reference(data_, pos);
-    ref.flip();
+    fill(data_.data.begin(), data_.data.end(), 0xff);
     return *this;
 }
 
-/*bool bits::operator[](size_t pos) const;
-*/
+bits& bits::set(size_t pos, bool val)
+{
+    (*this)[pos] = val;
+    return *this;
+}
+
+bits& bits::reset() noexcept
+{
+    fill(data_.data.begin(), data_.data.end(), 0x00);
+    return *this;
+}
+
+bits& bits::reset(size_t pos)
+{
+    return set(pos, false);
+}
+
+bits& bits::flip() noexcept
+{
+    transform(begin(data_.data), end(data_.data), begin(data_.data),
+          [](auto b1) {
+              return ~b1;
+          }
+    );
+    return *this;
+}
+
+bits& bits::flip(size_t pos)
+{
+    (*this)[pos].flip();
+    return *this;
+}
+
+bool bits::operator[](size_t pos) const
+{
+    if (pos >=  data_.data.size() * CHAR_BIT) {
+        return data_.highByte() != 0;
+    }
+
+    return false;
+}
 
 bits::reference bits::operator[](size_t pos)
 {
@@ -312,8 +328,11 @@ bool bits::operator!=(const bits& rhs) const noexcept
 size_t bits::size() const noexcept;
 size_t bits::capacity() const noexcept;
 void bits::reserve(size_t bit_count);
-void bits::shrink_to_fit();
 */
+void bits::shrink_to_fit()
+{
+    data_.shrink();
+}
 
 // class bits::reference
 bits::reference& bits::reference::operator=(bool val) noexcept
@@ -433,8 +452,6 @@ inline bits& bits::operate(const bits& rhs, Op op)
             return op(b, highByte);
         }
     );
-    data_.shrink();
-
     return *this;
 }
 
@@ -462,8 +479,29 @@ inline bits::byte bits::Data::highByte() const
 
 inline bool bits::Data::operator==(const Data& rhs) const
 {
-    return complement == rhs.complement
-        && data == rhs.data;
+    if (complement != rhs.complement) {
+        return false;
+    }
+
+    auto mism = mismatch(data.begin(), data.end(), rhs.data.begin(), rhs.data.end());
+
+    if (mism.first == data.end() && mism.second == rhs.data.end()) {
+        return true;
+    }
+
+    if (mism.first != data.end() && mism.second != rhs.data.end()) {
+        return false;
+    }
+
+    auto highByte = this->highByte();
+    auto pred = [highByte](auto val) {
+        return val == highByte;
+    };
+    if (mism.first == data.end()) {
+        return find_if_not(mism.second, rhs.data.end(), pred) == rhs.data.end();
+    }
+
+    return find_if_not(mism.first, data.end(), pred) == data.end();
 }
 
 inline void bits::Data::operator>>=(size_t rhs)
@@ -492,7 +530,6 @@ inline void bits::Data::operator>>=(size_t rhs)
     } else {
         data = {highByte()};
     }
-    shrink();
 }
 
 /*

@@ -285,6 +285,18 @@ void test_bitstring(std::string s)
     REQUIRE(bits(s).to_string().c_str() == s);
 }
 
+bits shrink(bits&& b)
+{
+    b.shrink_to_fit();
+    return std::move(b);
+}
+
+bits& shrink(bits& b)
+{
+    b.shrink_to_fit();
+    return b;
+}
+
 }
 
 TEST_CASE("Test Bits-Constructors", "[bits] [constructor]")
@@ -293,13 +305,13 @@ TEST_CASE("Test Bits-Constructors", "[bits] [constructor]")
     REQUIRE(bits(     ).to_string() == to_bitstring(    0));
 
     // some in type constructors
-    REQUIRE(bits(    0).to_string() == to_bitstring(    0));
-    REQUIRE(bits(  100).to_string() == to_bitstring(  100));
-    REQUIRE(bits(-   3).to_string() == to_bitstring(-   3));
-    REQUIRE(bits(-1024).to_string() == to_bitstring(-1024));
+    REQUIRE(shrink(bits(    0)).to_string() == to_bitstring(    0));
+    REQUIRE(shrink(bits(  100)).to_string() == to_bitstring(  100));
+    REQUIRE(shrink(bits(-   3)).to_string() == to_bitstring(-   3));
+    REQUIRE(shrink(bits(-1024)).to_string() == to_bitstring(-1024));
 
     // initializer list
-    REQUIRE(bits({0xff, 0xff, 0xff}).to_string() == "111111110000000000000000000000001111111100000000000000000000000011111111");
+    REQUIRE(shrink(bits({0xff, 0xff, 0xff})).to_string() == "111111110000000000000000000000001111111100000000000000000000000011111111");
 
     // bitstrings
     test_bitstring("111111110000000000000000000000001111111100000000000000000000000011111111");
@@ -352,11 +364,11 @@ TEST_CASE("Swapping Bits swaps them", "[bits] [swap]")
 
 TEST_CASE("Converting to ulong", "[bits] [convert]")
 {
-    REQUIRE(bits(     ).to_ulong() ==     0UL);
-    REQUIRE(bits(    0).to_ulong() ==     0UL);
-    REQUIRE(bits(  100).to_ulong() ==   100UL);
-    REQUIRE(bits(-   3).to_ulong() == static_cast<unsigned char>(-3));
-    REQUIRE(bits(-1024).to_ulong() == static_cast<unsigned short>(-1024));
+    REQUIRE(bits(     ).to_ulong() ==   0UL);
+    REQUIRE(bits(    0).to_ulong() ==   0UL);
+    REQUIRE(bits(  100).to_ulong() == 100UL);
+    REQUIRE(bits(-   3).to_ulong() ==    -3);
+    REQUIRE(bits(-1024).to_ulong() == -1024);
 
     // initializer list
     REQUIRE(bits({0x12aabbff}).to_ulong() == 0x12aabbffUL);
@@ -365,11 +377,11 @@ TEST_CASE("Converting to ulong", "[bits] [convert]")
 
 TEST_CASE("Converting to ullong", "[bits] [convert]")
 {
-    REQUIRE(bits(     ).to_ullong() ==     0ULL);
-    REQUIRE(bits(    0).to_ullong() ==     0ULL);
-    REQUIRE(bits(  100).to_ullong() ==   100ULL);
-    REQUIRE(bits(-   3).to_ullong() == static_cast<unsigned char>(-3));
-    REQUIRE(bits(-1024).to_ulong() == static_cast<unsigned short>(-1024));
+    REQUIRE(bits(     ).to_ullong() ==   0ULL);
+    REQUIRE(bits(    0).to_ullong() ==   0ULL);
+    REQUIRE(bits(  100).to_ullong() == 100ULL);
+    REQUIRE(shrink(bits(-   3)).to_ullong() == static_cast<unsigned char>(-3));
+    REQUIRE(bits(-1024).to_ulong()  ==  -1024);
 
     // initializer list
     REQUIRE(bits({0x12aabbff}).to_ullong() == 0x12aabbffUL);
@@ -379,10 +391,10 @@ TEST_CASE("Converting to ullong", "[bits] [convert]")
 TEST_CASE("Converting to string", "[bits] [convert]")
 {
     REQUIRE(bits(     ).to_string() == "00000000");
-    REQUIRE(bits(    0).to_string() == "00000000");
-    REQUIRE(bits(  100).to_string() == "01100100");
-    REQUIRE(bits(-   3).to_string() == "11111101");
-    REQUIRE(bits(-1024).to_string() == "1111110000000000");
+    REQUIRE(shrink(bits(    0)).to_string() == "00000000");
+    REQUIRE(shrink(bits(  100)).to_string() == "01100100");
+    REQUIRE(shrink(bits(-   3)).to_string() == "11111101");
+    REQUIRE(shrink(bits(-1024)).to_string() == "1111110000000000");
 }
 
 TEST_CASE("Operator &=", "[bits] [operator]")
@@ -523,7 +535,7 @@ TEST_CASE("Operator >>= (right shift)", "[bits] [operator] [shift]")
         b = 1;
         REQUIRE((b >>= 1) == 0);
     }
-    SECTION("Right-Shifting by 1 makes -7f")
+    SECTION("Right-Shifting strange number by 1 makes an even stranger number")
     {
         b = bits(static_cast<unsigned short>(0x4411));
         REQUIRE((b >>= 1) == 0x2208);
@@ -571,8 +583,10 @@ TEST_CASE("Operator >>= (right shift)", "[bits] [operator] [shift]")
     }
     SECTION("Right-Shifting by 10 shifts by 10")
     {
-        b = bits{"11010101000111110100100011111100100101010100010111100010100100010011111100001010010010010010010111110001"};
-        REQUIRE((b >>= 34) == bits("00000000000000000000000000000000001101010100011111010010001111110010010101010001011110001010010001001111"));
+        b = bits{"1101010100011111010010001111110010010101010001011110"
+                 "0010100100010011111100001010010010010010010111110001"};
+        REQUIRE((b >>= 34) == bits("0000000000000000000000000000000000110101010001111101"
+                                   "0010001111110010010101010001011110001010010001001111"));
     }
     SECTION("Right-Shifting by exactly available bits makes 0")
     {
@@ -586,7 +600,153 @@ TEST_CASE("Operator >>= (right shift)", "[bits] [operator] [shift]")
 
 TEST_CASE("set", "[bits] [modifier] [set]")
 {
-    SECTION("Set sets all bits in 0")
+    bits b0(0x0);
+    bits bf(0xff);
+
+    b0 = shrink(b0);
+
+    SECTION("Set sets every bit in the source")
     {
+        REQUIRE(b0.set() == bits(0xffU));
+    }
+    SECTION("Set sets every bit even in longer sources")
+    {
+        bf = bits{0x10101010, 0x10101010, 0x10101010, 0x10101010, 0x10101010,
+                 0x10101010, 0x10101010, 0x10101010, 0x10101010, 0x10101010};
+        REQUIRE(bf.set() == bits({0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+                                  0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff}));
+    }
+    SECTION("Set(pos) sets the given bit")
+    {
+        REQUIRE(b0.set(0) == 1);
+    }
+    SECTION("Set(pos, true) sets the given bit")
+    {
+        REQUIRE(b0.set(1, true) == 0x02);
+    }
+    SECTION("Set(pos, false) resets the given bit")
+    {
+        REQUIRE(bf.set(3, false) == 0xf7);
+    }
+    SECTION("Set(pos) can be used to set/reset only virtually existing bits")
+    {
+        REQUIRE(b0.set(30) == 0x40000000);
+    }
+}
+
+TEST_CASE("reset", "[bits] [modifier] [reset]")
+{
+    bits b0(0x0);
+    bits bf(0xff);
+
+    b0 = shrink(b0);
+    bf = shrink(bf);
+
+    SECTION("Reset() sets every bit in the sequence to 0")
+    {
+        REQUIRE(bf.reset() == 0);
+    }
+    SECTION("Reset resets every bit even in longer sources")
+    {
+        bf = bits{0x10101010, 0x10101010, 0x10101010, 0x10101010, 0x10101010,
+            0x10101010, 0x10101010, 0x10101010, 0x10101010, 0x10101010};
+        REQUIRE(bf.reset() == 0);
+    }
+    SECTION("Reset(pos) resets the given bit")
+    {
+        REQUIRE(bf.reset(0) == 0xfe);
+    }
+    SECTION("Reset(pos) can be used to set only virtually existing bits")
+    {
+        //  i.e. nothing changed
+        REQUIRE(bf.reset(30) == 0xff);
+    }
+    SECTION("Flip() toggles every bit in the sequence")
+    {
+        REQUIRE(b0.flip() == 0xff);
+        REQUIRE(bf.flip() == 0x00);
+    }
+}
+
+TEST_CASE("flip", "[bits] [modifier] [flip]")
+{
+    bits b0(0x0);
+    bits bf(0xff);
+
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(0) == 0xfe);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(1) == 0b11111101);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(2) == 0b11111011);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(3) == 0b11110111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(4) == 0b11101111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(5) == 0b11011111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(6) == 0b10111111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(7) == 0b01111111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(8) == 0b000111111111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(9) == 0b001011111111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(10) == 0b010011111111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(11) == 0b100011111111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(12) == 0b0001000011111111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(13) == 0b0010000011111111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(14) == 0b0100000011111111);
+    }
+    SECTION("flip(pos) toggles the given bit")
+    {
+        REQUIRE(bf.flip(15) == 0b1000000011111111);
+    }
+}
+
+TEST_CASE("operator[]", "[bits] [modifier] [operator]")
+{
+    const bits constBits(0b010101010101010101010101);
+    bits nonconstBits(constBits);
+
+    SECTION("operator[] gives access to the bits")
+    {
+        REQUIRE(constBits[0]);
+        REQUIRE(nonconstBits[0]);
     }
 }
