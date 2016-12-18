@@ -35,6 +35,8 @@
 
 namespace std { namespace experimental { namespace seminumeric
 {
+    class integer;
+    
     class bits
     {
     public:

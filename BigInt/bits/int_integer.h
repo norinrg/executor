@@ -30,8 +30,13 @@
 #ifndef INT_INTEGER_H
 #define INT_INTEGER_H
 
+#include <string>
+
 namespace std { namespace experimental { namespace seminumeric
 {
+    class bits;
+    class integer_data_proxy;
+
     class integer
     {
     public:
