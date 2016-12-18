@@ -29,102 +29,102 @@
 
 #include "int_bits.h"
 
-namespace std { namespace experimental { namespace seminumeric {
+namespace std { namespace experimental { namespace seminumeric
+{
+    /* class integer */
+    /*
+    class integer;
+    class integer_data_proxy;
 
-/* class integer */
-/*
-class integer;
-class integer_data_proxy;
+    inline void swap(integer& lhs, integer& rhs) noexcept
 
-inline void swap(integer& lhs, integer& rhs) noexcept
+    // comparisons
+    bool operator==(const integer& lhs, const integer& rhs) noexcept;
+    bool operator!=(const integer& lhs, const integer& rhs) noexcept;
+    bool operator<(const integer& lhs, const integer& rhs) noexcept;
+    bool operator<=(const integer& lhs, const integer& rhs) noexcept;
+    bool operator>(const integer& lhs, const integer& rhs) noexcept;
+    bool operator>=(const integer& lhs, const integer& rhs) noexcept;
 
-// comparisons
-bool operator==(const integer& lhs, const integer& rhs) noexcept;
-bool operator!=(const integer& lhs, const integer& rhs) noexcept;
-bool operator<(const integer& lhs, const integer& rhs) noexcept;
-bool operator<=(const integer& lhs, const integer& rhs) noexcept;
-bool operator>(const integer& lhs, const integer& rhs) noexcept;
-bool operator>=(const integer& lhs, const integer& rhs) noexcept;
+    // arithmetic operations
+    integer operator+(const integer& lhs, const integer& rhs);
+    integer operator-(const integer& lhs, const integer& rhs);
+    integer operator*(const integer& lhs, const integer& rhs);
+    integer operator/(const integer& lhs, const integer& rhs);
+    integer operator%(const integer& lhs, const integer& rhs);
 
-// arithmetic operations
-integer operator+(const integer& lhs, const integer& rhs);
-integer operator-(const integer& lhs, const integer& rhs);
-integer operator*(const integer& lhs, const integer& rhs);
-integer operator/(const integer& lhs, const integer& rhs);
-integer operator%(const integer& lhs, const integer& rhs);
+    std::pair<integer, integer> div(const integer& lhs, const integer& rhs);
 
-std::pair<integer, integer> div(const integer& lhs, const integer& rhs);
+    integer abs(const integer& val);
 
-integer abs(const integer& val);
+    integer operator<<(const integer& lhs, size_t rhs);
+    integer operator>>(const integer& lhs, size_t rhs);
 
-integer operator<<(const integer& lhs, size_t rhs);
-integer operator>>(const integer& lhs, size_t rhs);
+    // numeric operations
+    integer sqr(const integer& val);
+    integer sqrt(const integer& val);
+    integer pow(const integer& val, const integer& exp);
+    integer mod(const integer& lhs, const integer& rhs);
+    integer mulmod(const integer& lhs, const integer& rhs, const integer& m);
+    integer powmod(const integer& lhs, const integer& rhs, const integer& m);
 
-// numeric operations
-integer sqr(const integer& val);
-integer sqrt(const integer& val);
-integer pow(const integer& val, const integer& exp);
-integer mod(const integer& lhs, const integer& rhs);
-integer mulmod(const integer& lhs, const integer& rhs, const integer& m);
-integer powmod(const integer& lhs, const integer& rhs, const integer& m);
-
-integer gcd(const integer& a, const integer& b);
-integer lcm(const integer& a, const integer& b);
+    integer gcd(const integer& a, const integer& b);
+    integer lcm(const integer& a, const integer& b);
 
 
-// conversions
-std::string to_string(const integer& val, int radix = 10);
+    // conversions
+    std::string to_string(const integer& val, int radix = 10);
 
-// I/O operations
-template <class CharT, class Traits>
+    // I/O operations
+    template <class CharT, class Traits>
+        std::basic_ostream<CharT, Traits>& operator<<(
+            std::basic_ostream<CharT, Traits>& str, const integer& val);
+    template <class CharT, class Traits>
+        std::basic_istream<CharT, Traits>& operator>>(
+            std::basic_istream<CharT, Traits>& str, integer& val);
+    */
+
+    /* class bits */
+    /*
+    class bits;
+    */
+
+    inline void swap(bits& lhs, bits& rhs) noexcept
+    {
+        lhs.swap(rhs);
+    }
+
+    /*
+    // logical operations
+    bits operator&(const bits& lhs, const bits& rhs);
+    bits operator|(const bits& lhs, const bits& rhs);
+    bits operator^(const bits& lhs, const bits& rhs);
+
+    bits operator<<(const bits& lhs, size_t rhs);
+    bits operator>>(const bits& lhs, size_t rhs);
+    */
+
+    // I/O operations
+    template <class CharT, class Traits>
     std::basic_ostream<CharT, Traits>& operator<<(
-        std::basic_ostream<CharT, Traits>& str, const integer& val);
-template <class CharT, class Traits>
-    std::basic_istream<CharT, Traits>& operator>>(
-        std::basic_istream<CharT, Traits>& str, integer& val);
-*/
+        std::basic_ostream<CharT, Traits>& str, const bits& val)
+    {
+        str << val.to_string();
+        return str;
+    }
+    /*
+    template <class CharT, class Traits>
+        std::basic_istream<CharT, Traits>& operator>>(
+            std::basic_istream<CharT, Traits>& str, bits& val);
+    */
+    }}
 
-/* class bits */
-/*
-class bits;
-*/
+    /*
+    template <class Ty> class numeric_limits;
+    template <> class numeric_limits<experimental::seminumeric::integer>;
 
-inline void swap(bits& lhs, bits& rhs) noexcept
-{
-    lhs.swap(rhs);
-}
-
-/*
-// logical operations
-bits operator&(const bits& lhs, const bits& rhs);
-bits operator|(const bits& lhs, const bits& rhs);
-bits operator^(const bits& lhs, const bits& rhs);
-
-bits operator<<(const bits& lhs, size_t rhs);
-bits operator>>(const bits& lhs, size_t rhs);
-*/
-
-// I/O operations
-template <class CharT, class Traits>
-std::basic_ostream<CharT, Traits>& operator<<(
-    std::basic_ostream<CharT, Traits>& str, const bits& val)
-{
-    str << val.to_string();
-    return str;
-}
-/*
-template <class CharT, class Traits>
-    std::basic_istream<CharT, Traits>& operator>>(
-        std::basic_istream<CharT, Traits>& str, bits& val);
-*/
-}}
-
-/*
-template <class Ty> class numeric_limits;
-template <> class numeric_limits<experimental::seminumeric::integer>;
-
-template <class Ty> class hash;
-template <> class hash<experimental::seminumeric::integer>;
-template <> class hash<experimental::seminumeric::bits>;
-*/
+    template <class Ty> class hash;
+    template <> class hash<experimental::seminumeric::integer>;
+    template <> class hash<experimental::seminumeric::bits>;
+    */
 }

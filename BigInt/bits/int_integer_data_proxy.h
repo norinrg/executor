@@ -32,65 +32,64 @@
 
 #include <vector>
 
-namespace std { namespace experimental { namespace seminumeric {
+namespace std { namespace experimental { namespace seminumeric
+{
+    class integer_data_proxy
+    {
+    /*
+    * orig:
+        // type names
+        typedef unspecified data_type;
+        typedef unspecified arithmetic_type;
+        typedef unspecified uarithmetic_type;
+        typedef unspecified iterator;
+        typedef unspecified const_iterator;
+        typedef unspecified reverse_iterator;
+        typedef unspecified const_reverse_iterator;
+    */
+    /*
+    * new:
+    */
+        friend class integer;
+        using buffer_type = vector<unsigned char>;
 
-class integer_data_proxy {
+        // type names
+        typedef buffer_type::value_type data_type;
+        typedef short                   arithmetic_type;
+        typedef unsigned short          uarithmetic_type;
+        typedef buffer_type::iterator               iterator;
+        typedef buffer_type::const_iterator         const_iterator;
+        typedef buffer_type::reverse_iterator       reverse_iterator;
+        typedef buffer_type::const_reverse_iterator const_reverse_iterator;
 
-/*
- * orig:
-    // type names
-    typedef unspecified data_type;
-    typedef unspecified arithmetic_type;
-    typedef unspecified uarithmetic_type;
-    typedef unspecified iterator;
-    typedef unspecified const_iterator;
-    typedef unspecified reverse_iterator;
-    typedef unspecified const_reverse_iterator;
- */
-/*
- * new:
- */
-    friend class integer;
-    using buffer_type = vector<unsigned char>;
+        // constructors
+        integer_data_proxy(const integer_data_proxy& rhs) = delete;
+        integer_data_proxy(integer_data_proxy&& rhs);
 
-    // type names
-    typedef buffer_type::value_type data_type;
-    typedef short                   arithmetic_type;
-    typedef unsigned short          uarithmetic_type;
-    typedef buffer_type::iterator               iterator;
-    typedef buffer_type::const_iterator         const_iterator;
-    typedef buffer_type::reverse_iterator       reverse_iterator;
-    typedef buffer_type::const_reverse_iterator const_reverse_iterator;
+        // assign
+        integer_data_proxy& operator=(const integer_data_proxy& rhs) = delete;
+        integer_data_proxy& operator=(integer_data_proxy&& rhs) = delete;
 
-    // constructors
-    integer_data_proxy(const integer_data_proxy& rhs) = delete;
-    integer_data_proxy(integer_data_proxy&& rhs);
+        // iterators
+        iterator begin() noexcept;
+        iterator end() noexcept;
+        reverse_iterator rbegin() noexcept;
+        reverse_iterator rend() noexcept;
+        const_iterator cbegin() const noexcept;
+        const_iterator cend() const noexcept;
+        const_reverse_iterator crbegin() const noexcept;
+        const_reverse_iterator crend() const noexcept;
 
-    // assign
-    integer_data_proxy& operator=(const integer_data_proxy& rhs) = delete;
-    integer_data_proxy& operator=(integer_data_proxy&& rhs) = delete;
+        // element access
+        data_type operator[](size_t pos) const;
+        data_type& operator[](size_t pos);
 
-    // iterators
-    iterator begin() noexcept;
-    iterator end() noexcept;
-    reverse_iterator rbegin() noexcept;
-    reverse_iterator rend() noexcept;
-    const_iterator cbegin() const noexcept;
-    const_iterator cend() const noexcept;
-    const_reverse_iterator crbegin() const noexcept;
-    const_reverse_iterator crend() const noexcept;
-
-    // element access
-    data_type operator[](size_t pos) const;
-    data_type& operator[](size_t pos);
-
-    // capacity
-    size_t size() const noexcept;
-    size_t capacity() const noexcept;
-    void reserve(size_t digits);
-    void shrink_to_fit();
-};
-
+        // capacity
+        size_t size() const noexcept;
+        size_t capacity() const noexcept;
+        void reserve(size_t digits);
+        void shrink_to_fit();
+    };
 }}}
 
 #endif

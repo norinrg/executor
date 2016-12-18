@@ -30,89 +30,90 @@
 #ifndef INT_INTEGER_H
 #define INT_INTEGER_H
 
-namespace std { namespace experimental { namespace seminumeric {
+namespace std { namespace experimental { namespace seminumeric
+{
+    class integer
+    {
+    public:
 
-class integer {
-public:
+        // constructors
+        integer() noexcept;
 
-    // constructors
-    integer() noexcept;
+        template <class Ty>
+            integer(Ty rhs) noexcept; // arithmetic types only
 
-    template <class Ty>
-        integer(Ty rhs) noexcept; // arithmetic types only
+        integer(std::initializer_list<uint_least32_t> init);
 
-    integer(std::initializer_list<uint_least32_t> init);
+        template <class CharT, class Traits, class Alloc>
+            explicit integer(const std::basic_string<CharT, Traits, Alloc>& str);
 
-    template <class CharT, class Traits, class Alloc>
-        explicit integer(const std::basic_string<CharT, Traits, Alloc>& str);
+        explicit integer(const bits& rhs);
+        explicit integer(bits&& rhs);
 
-    explicit integer(const bits& rhs);
-    explicit integer(bits&& rhs);
+        integer(const integer& rhs);
+        integer(integer&& rhs) noexcept;
 
-    integer(const integer& rhs);
-    integer(integer&& rhs) noexcept;
+        // assign and swap
+        template <class Ty>
+            integer& operator=(Ty rhs);   // arithmetic types only
+        integer& operator=(const bits& rhs);
+        integer& operator=(bits&& rhs);
+        integer& operator=(const integer& rhs);
+        integer& operator=(integer&& rhs);
+        void swap(integer& rhs) noexcept;
 
-    // assign and swap
-    template <class Ty>
-        integer& operator=(Ty rhs);   // arithmetic types only
-    integer& operator=(const bits& rhs);
-    integer& operator=(bits&& rhs);
-    integer& operator=(const integer& rhs);
-    integer& operator=(integer&& rhs);
-    void swap(integer& rhs) noexcept;
+        // conversions
+        explicit operator long long() const;
+        explicit operator unsigned long long() const;
+        explicit operator long double() const noexcept;
+        explicit operator bool() const noexcept;
 
-    // conversions
-    explicit operator long long() const;
-    explicit operator unsigned long long() const;
-    explicit operator long double() const noexcept;
-    explicit operator bool() const noexcept;
+        // comparisons
+        int compare(const integer& rhs) const noexcept;
 
-    // comparisons
-    int compare(const integer& rhs) const noexcept;
+        // arithmetic operations
+        integer& operator+=(const integer& rhs);
+        integer& operator-=(const integer& rhs);
+        integer& operator*=(const integer& rhs);
+        integer& operator/=(const integer& rhs);
+        integer& operator%=(const integer& rhs);
 
-    // arithmetic operations
-    integer& operator+=(const integer& rhs);
-    integer& operator-=(const integer& rhs);
-    integer& operator*=(const integer& rhs);
-    integer& operator/=(const integer& rhs);
-    integer& operator%=(const integer& rhs);
+        integer& operator++();
+        integer operator++(int);
+        integer& operator--();
+        integer operator--(int);
 
-    integer& operator++();
-    integer operator++(int);
-    integer& operator--();
-    integer operator--(int);
+        integer div(const integer& rhs);
 
-    integer div(const integer& rhs);
+        integer& abs() noexcept;
+        integer& negate() noexcept;
+        integer operator+() const noexcept;
+        integer operator-() const noexcept;
 
-    integer& abs() noexcept;
-    integer& negate() noexcept;
-    integer operator+() const noexcept;
-    integer operator-() const noexcept;
+        integer& operator<<=(size_t rhs);
+        integer& operator>>=(size_t rhs);
 
-    integer& operator<<=(size_t rhs);
-    integer& operator>>=(size_t rhs);
+        // numeric operations
+        integer& sqr();
+        integer& sqrt();
+        integer& pow(const integer& exp);
+        integer& mod(const integer& rhs);
+        integer& mulmod(const integer& rhs, const integer& m);
+        integer& powmod(const integer& exp, const integer& m);
 
-    // numeric operations
-    integer& sqr();
-    integer& sqrt();
-    integer& pow(const integer& exp);
-    integer& mod(const integer& rhs);
-    integer& mulmod(const integer& rhs, const integer& m);
-    integer& powmod(const integer& exp, const integer& m);
+        // observers
+        bool is_zero() const noexcept;
+        bool is_odd() const noexcept;
 
-    // observers
-    bool is_zero() const noexcept;
-    bool is_odd() const noexcept;
+        // accessors
+        integer_data_proxy get_data_proxy();
 
-    // accessors
-    integer_data_proxy get_data_proxy();
-
-    // capacity
-    size_t size() const noexcept;
-    size_t capacity() const noexcept;
-    void reserve(size_t digits);
-    void shrink_to_fit();
-};
+        // capacity
+        size_t size() const noexcept;
+        size_t capacity() const noexcept;
+        void reserve(size_t digits);
+        void shrink_to_fit();
+    };
 
 }}}
 

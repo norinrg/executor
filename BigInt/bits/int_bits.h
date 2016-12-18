@@ -33,142 +33,145 @@
 #include <string>
 #include <vector>
 
-namespace std { namespace experimental { namespace seminumeric {
-
-class bits {
-public:
-    class reference;
-
-    // constructors
-    bits() noexcept;
-
-    template <class Ty>
-    bits(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = nullptr) noexcept;                            // integral types only
-
-    bits(std::initializer_list<uint_least32_t> list);
-
-    template <class CharT, class Traits, class Alloc>
-    explicit bits(const basic_string<CharT, Traits, Alloc>& str,
-        typename basic_string<CharT, Traits, Alloc>::size_type pos = 0,
-        typename basic_string<CharT, Traits, Alloc>::size_type count = std::basic_string<CharT>::npos,
-        CharT zero = CharT('0'),
-        CharT one = CharT('1'));
-    template <class CharT>
-    explicit bits(const CharT* ptr,
-        typename basic_string<CharT>::size_type count = std::basic_string<CharT>::npos,
-        CharT zero = CharT('0'),
-        CharT one = CharT('1'));
-
-    explicit bits(const integer& val);
-    explicit bits(integer&& val);
-
-    bits(const bits& rhs);
-    bits(bits&& rhs) noexcept;
-
-    // assign and swap
-    template <class Ty>
-    bits& operator=(Ty rhs); // integral types only
-    bits& operator=(const integer& rhs);
-    bits& operator=(integer&& rhs);
-    bits& operator=(const bits& rhs);
-    bits& operator=(bits&& rhs);
-    void swap(bits& rhs) noexcept;
-
-    // conversions
-    unsigned long to_ulong() const;
-    unsigned long long to_ullong() const;
-    template <class CharT = char, class Traits = std::char_traits<CharT>, class Alloc = std::allocator<CharT>>
-    std::basic_string<CharT, Traits, Alloc> to_string(CharT zero = CharT('0'), CharT one = CharT('1')) const;
-
-    // logical operations
-    bits& operator&=(const bits& rhs);
-    bits& operator|=(const bits& rhs);
-    bits& operator^=(const bits& rhs);
-    bits operator~() const;
-
-    bits& operator<<=(size_t rhs);
-    bits& operator>>=(size_t rhs);
-    //bits& operator<<(size_t rhs) const;
-    //bits& operator>>(size_t rhs) const;
-
-    // element access and modification
-    bits& set() noexcept;
-    bits& set(size_t pos, bool val = true);
-    bits& reset() noexcept;
-    bits& reset(size_t pos);
-    bits& flip() noexcept;
-    bits& flip(size_t pos);
-    bool operator[](size_t pos) const;
-    reference operator[](size_t pos);
-    bool test(size_t pos) const noexcept;
-    bool all() const noexcept;
-    bool any() const noexcept;
-    bool none() const noexcept;
-    size_t count() const noexcept;
-    size_t count_not_set() const noexcept;
-
-    // comparison
-    bool operator==(const bits& rhs) const noexcept;
-    bool operator!=(const bits& rhs) const noexcept;
-
-    // capacity
-    size_t size() const noexcept;
-    size_t capacity() const noexcept;
-    void reserve(size_t bit_count);
-    void shrink_to_fit();
-
-    class reference {
+namespace std { namespace experimental { namespace seminumeric
+{
+    class bits
+    {
     public:
-        reference& operator=(bool val) noexcept;
-        reference& operator=(const reference& rhs) noexcept;
-        bool operator~() const noexcept;
-        operator bool() const noexcept;
-        reference& flip() noexcept;
+        class reference;
 
-    // new
+        // constructors
+        bits() noexcept;
+
+        template <class Ty>
+        bits(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = nullptr) noexcept;                            // integral types only
+
+        bits(std::initializer_list<uint_least32_t> list);
+
+        template <class CharT, class Traits, class Alloc>
+        explicit bits(const basic_string<CharT, Traits, Alloc>& str,
+            typename basic_string<CharT, Traits, Alloc>::size_type pos = 0,
+            typename basic_string<CharT, Traits, Alloc>::size_type count = std::basic_string<CharT>::npos,
+            CharT zero = CharT('0'),
+            CharT one = CharT('1'));
+        template <class CharT>
+        explicit bits(const CharT* ptr,
+            typename basic_string<CharT>::size_type count = std::basic_string<CharT>::npos,
+            CharT zero = CharT('0'),
+            CharT one = CharT('1'));
+
+        explicit bits(const integer& val);
+        explicit bits(integer&& val);
+
+        bits(const bits& rhs);
+        bits(bits&& rhs) noexcept;
+
+        // assign and swap
+        template <class Ty>
+        bits& operator=(Ty rhs); // integral types only
+        bits& operator=(const integer& rhs);
+        bits& operator=(integer&& rhs);
+        bits& operator=(const bits& rhs);
+        bits& operator=(bits&& rhs);
+        void swap(bits& rhs) noexcept;
+
+        // conversions
+        unsigned long to_ulong() const;
+        unsigned long long to_ullong() const;
+        template <class CharT = char, class Traits = std::char_traits<CharT>, class Alloc = std::allocator<CharT>>
+        std::basic_string<CharT, Traits, Alloc> to_string(CharT zero = CharT('0'), CharT one = CharT('1')) const;
+
+        // logical operations
+        bits& operator&=(const bits& rhs);
+        bits& operator|=(const bits& rhs);
+        bits& operator^=(const bits& rhs);
+        bits operator~() const;
+
+        bits& operator<<=(size_t rhs);
+        bits& operator>>=(size_t rhs);
+        //bits& operator<<(size_t rhs) const;
+        //bits& operator>>(size_t rhs) const;
+
+        // element access and modification
+        bits& set() noexcept;
+        bits& set(size_t pos, bool val = true);
+        bits& reset() noexcept;
+        bits& reset(size_t pos);
+        bits& flip() noexcept;
+        bits& flip(size_t pos);
+        bool operator[](size_t pos) const;
+        reference operator[](size_t pos);
+        bool test(size_t pos) const noexcept;
+        bool all() const noexcept;
+        bool any() const noexcept;
+        bool none() const noexcept;
+        size_t count() const noexcept;
+        size_t count_not_set() const noexcept;
+
+        // comparison
+        bool operator==(const bits& rhs) const noexcept;
+        bool operator!=(const bits& rhs) const noexcept;
+
+        // capacity
+        size_t size() const noexcept;
+        size_t capacity() const noexcept;
+        void reserve(size_t bit_count);
+        void shrink_to_fit();
+
+        class reference
+        {
+        public:
+            reference& operator=(bool val) noexcept;
+            reference& operator=(const reference& rhs) noexcept;
+            bool operator~() const noexcept;
+            operator bool() const noexcept;
+            reference& flip() noexcept;
+
+        // new
+        private:
+            friend class bits;
+
+            reference(unsigned char& uc, int bit);
+
+        private:
+            unsigned char& uc;
+            int bit;
+        };
+
+    //  new
     private:
-        friend class bits;
+        using byte = unsigned char;
+        struct Data
+        {
+            bool complement;
+            vector<byte> data;
 
-        reference(unsigned char& uc, int bit);
+            void shrink();
+            byte highByte() const;
+
+            bool operator==(const Data& rhs) const;
+            void operator>>=(size_t rhs);
+        };
+
+        template <typename Ty>
+        static void addValue(Data& data, Ty rhs);
+
+        template <typename Ty>
+        static Data initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = 0);
+        static Data initVector(std::initializer_list<uint_least32_t> list);
+
+        template <typename CharT>
+        static Data makeVector(const CharT* str, size_t count, CharT zero, CharT one);
+
+        static void grow(Data& data, size_t size);
+        static reference make_existing_reference(Data& data, size_t pos);
+
+        template <class Op>
+        bits& operate(const bits& rhs, Op op);
 
     private:
-        unsigned char& uc;
-        int bit;
+        Data data_;
     };
-
-//  new
-private:
-    using byte = unsigned char;
-    struct Data {
-        bool complement;
-        vector<byte> data;
-
-        void shrink();
-        byte highByte() const;
-
-        bool operator==(const Data& rhs) const;
-        void operator>>=(size_t rhs);
-    };
-
-    template <typename Ty>
-    static void addValue(Data& data, Ty rhs);
-
-    template <typename Ty>
-    static Data initVector(Ty rhs, typename enable_if<is_integral<Ty>::value>::type* = 0);
-    static Data initVector(std::initializer_list<uint_least32_t> list);
-
-    template <typename CharT>
-    static Data makeVector(const CharT* str, size_t count, CharT zero, CharT one);
-
-    static void grow(Data& data, size_t size);
-    static reference make_existing_reference(Data& data, size_t pos);
-
-    template <class Op>
-    bits& operate(const bits& rhs, Op op);
-
-private:
-    Data data_;
-};
 
 }}}
 

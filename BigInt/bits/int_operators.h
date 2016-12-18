@@ -33,10 +33,9 @@
 #include <string>
 #include <utility>
 
-namespace std { namespace experimental { namespace seminumeric {
-
-/* class integer */
-
+namespace std { namespace experimental { namespace seminumeric
+{
+    /* class integer */
     class integer;
     class integer_data_proxy;
 
@@ -87,7 +86,7 @@ namespace std { namespace experimental { namespace seminumeric {
     std::basic_istream<CharT, Traits>& operator>>(
         std::basic_istream<CharT, Traits>& str, integer& val);
 
-/* class bits */
+    /* class bits */
 
     class bits;
 
@@ -109,7 +108,6 @@ namespace std { namespace experimental { namespace seminumeric {
     template <class CharT, class Traits>
     std::basic_istream<CharT, Traits>& operator>>(
         std::basic_istream<CharT, Traits>& str, bits& val);
-
 }}
 
 template <class Ty> class numeric_limits;
